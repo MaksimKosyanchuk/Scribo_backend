@@ -1,84 +1,31 @@
 const cors = require('cors');
-const fs = require('fs');
 const express = require('express');
 const app = express();
-const port = 3001; // Порт, на котором будет работать сервер
+const port = 3001;
+const mongoose = require('mongoose');
+require('dotenv').config();
 
 app.use(cors());
+app.use(express.json({ extended: true }));
 
 // Обработка GET запроса на корневой URL
 app.get('/', (req, res) => {
     res.send('Привет, мир!');
 });
 
-const getFile = async () => {
-    let file = false;
-    
-    let data = await fs.readFileSync(`${__dirname}/static/posts.json`, 'utf8')
 
-    if (!data) {
-        return file
-    }
-    
-    file = await JSON.parse(data);
+app.use('/api/posts', require('./routes/posts.routes'));
+app.use('/api/users', require('./routes/users.routes'));
+app.use('/api/auth', require('./routes/auth.routes'));
 
-    return file;
-}
-
-app.get('/posts', async (req, res) => {
+const start = async () => {
     try {
-        let file = await getFile();
-        
-        if (!file) {
-            return res.status(200).json({
-                status: 'error',
-                message: "Все не ок",
-                posts: null
-            })
-        }
-
-        return res.status(200).json({
-            status: 'success',
-            message: "Все ок",
-            posts: file
-        })
-    } catch (e) {
-        console.log(e)
+        await mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.lccalb5.mongodb.net/?retryWrites=true&w=majority`);
+        app.listen(port, () => console.log('server started on port: ', port));
     }
-});
-
-app.get('/posts/:id', async (req, res) => {
-    let file = await getFile();
-
-    console.log(req.params);
-
-    if (!file) {
-        return res.status(200).json({
-            status: 'error',
-            message: "Чет  с файлос",
-            post: null
-        })
+    catch (e) { 
+        console.log(e.message);
+        process.exit(1);
     }
-
-    let post = file.find(el => el.id == req.params.id)
-
-    if (!post) {
-        return res.status(200).json({
-            status: 'error',
-            message: "Такого поста нет",
-            post: null
-        })
-    }
-
-    return res.status(200).json({
-        status: 'success',
-        message: "Все ок",
-        post: post
-    })
-    
-});
-
-// Запуск сервера
-app.listen(port, () => {
-    console.log(`Сервер запущен на порту ${port}`);
-});
+}
+start();
