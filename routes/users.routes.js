@@ -1,17 +1,16 @@
 const { Router } = require("express");
-const User = require('../models/User');
+const { get_user_by } = require("../services/users.services");
 
 const router = Router();
 
-router.get('/:id', async (req, res) => getUserBy('_id', req.params.id));
+router.get('/:nick_name', async (req, res) => {
+    const user = await get_user_by('nick_name', req.params.nick_name)
 
-
-
-
-async function userIsAdmin(user_id){
-    user = await getUserById(user_id)
-    return user.status == "success" && user.user.is_admin;
-}
-
+    return res.status(200).json({
+        status: user.status ? "success" : "error",
+        message: user.message,
+        data: user.data
+    })
+})
 
 module.exports = router;

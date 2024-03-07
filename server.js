@@ -8,11 +8,6 @@ require('dotenv').config();
 app.use(cors());
 app.use(express.json({ extended: true }));
 
-// Обработка GET запроса на корневой URL
-app.get('/', (req, res) => {
-    res.send('Привет, мир!');
-});
-
 
 app.use('/api/posts', require('./routes/posts.routes'));
 app.use('/api/users', require('./routes/users.routes'));
@@ -28,4 +23,5 @@ const start = async () => {
         process.exit(1);
     }
 }
+
 start();

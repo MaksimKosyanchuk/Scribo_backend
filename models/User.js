@@ -1,6 +1,4 @@
-const { ObjectId } = require('mongodb');
 const {Schema, model, Types} = require('mongoose');
-const { post } = require('../routes/posts.routes');
 
 let shema = new Schema({
     nick_name: {type: String, required: true},
