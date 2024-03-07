@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const {get_user_by_name} = require('./users.services')
+const {get_public_user_by} = require('./users.services')
 
 async function compare_passwords(password, from_db) {    
     return await bcrypt.compare(password, from_db);
@@ -15,8 +15,6 @@ async function set_jwt_token(user_id) {
         key,
         {}
     );
-
-    console.log(token)
 
     return token;
 }
@@ -86,7 +84,6 @@ function auth_data_validation(nick_name, password)
 }
 
 async function register(req) {
-    console.log(req.body)
     const { nick_name, password } = req.body;
 
     let auth = auth_data_validation(nick_name, password)
@@ -98,7 +95,7 @@ async function register(req) {
         }
     }
 
-    let user = await get_user_by_name(nick_name);
+    let user = await get_public_user_by('nick_name', nick_name);
     if (user.status) {
         return {
             status: false,
@@ -110,7 +107,7 @@ async function register(req) {
     const newUser = new User({
         nick_name: nick_name,
         password: await set_password_hash(password),
-        avatar: req.body.avatar,
+        avatar: validate_image(req.body.avatar).data
     })
     
     await newUser.save();
@@ -122,6 +119,17 @@ async function register(req) {
     }
 }
 
+function validate_image(avatar){
+    // проверить фотку, если ее вообще нет(undefined) или пустой/неверный путь,
+    //то вернуть null, в ином случае вернуть путь
+    let is_link = /^https?:\/\/\S+$/.test(avatar);
+    return {
+        status: is_link,
+        message: is_link ? "Image path is correct" : "Image path is not a link",
+        data: is_link ? avatar : null 
+    }
+}
+
 async function set_password_hash(password) {
     return await bcrypt.hashSync(password, process.env.PSSWORD_SALT);
 }
@@ -130,5 +138,6 @@ module.exports = {
     compare_passwords,
     login,
     register,
-    get_jwt_token
+    get_jwt_token,
+    validate_image
 };

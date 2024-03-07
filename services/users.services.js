@@ -1,8 +1,8 @@
 const User = require('../models/User');
 
-async function get_user_by(key, value){
-    let user = await User.findOne({ [key]: value });
+async function get_private_user_by(key, value){
 
+    let user = await User.findOne({ [key]: value });
     if(!user){
         return {
             status: false,
@@ -18,32 +18,25 @@ async function get_user_by(key, value){
     }
 };
 
-async function get_user_by_name(name) {
-    let user = await get_user_by('nick_name', name)
 
-    if(user.status) {
-        return {
-            status: true,
-            message: "success",
-            data: {
-                nick_name: user.data.nick_name,
-                avatar: user.data.avatar,
-                created_date: user.data.created_date,
-                is_admin: user.data.is_admin,
-                posts: user.data.posts,
-                saved_posts: user.data.saved_posts
-            }
-        }
-    }
+async function get_public_user_by(key, value) {
+    let user = await get_private_user_by(key, value);
+    if(!user.status) return user
 
     return {
-        status: false,
-        message: "error",
-        data: null
+        status: true,
+        message: "success",
+        data: {
+            nick_name: user.data.nick_name,
+            created_date: user.data.created_date,
+            is_admin: user.data.is_admin,
+            posts: user.data.posts,
+            saved_posts: user.data.save_posts
+        }
     }
 }
 
 module.exports = {
-    get_user_by,
-    get_user_by_name
+    get_private_user_by,
+    get_public_user_by
 };
