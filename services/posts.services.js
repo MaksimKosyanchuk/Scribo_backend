@@ -1,7 +1,7 @@
 const { get_public_user_by } = require("../services/users.services");
 const Post = require('../models/Post');
+const User = require('../models/User');
 const { get_jwt_token, validate_image } = require('./auth.services');
-const { get_private_user_by } = require("./users.services");
 
 function post_validation(title, image, content) {
     if(!title || title.replace(" ", "").length == 0) {
@@ -82,9 +82,9 @@ async function create_post(req) {
         }
     }
     
-    let user = await get_private_user_by("_id", token_result.data.user_id);
+    let user = await User.findOne({ _id: token_result.data.user_id });
 
-    if(!user.data.is_admin) {
+    if(!user.is_admin) {
         return{
             status: false,
             message: "This user doesn`t have permission to create a post!",
