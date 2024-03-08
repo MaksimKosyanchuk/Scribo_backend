@@ -11,7 +11,7 @@ let shema = new Schema({
         ref: "Post",
         required: false
     }],
-    save_posts: [{
+    saved_posts: [{
         type: Types.ObjectId,
         ref: "Post",
         reuired: false

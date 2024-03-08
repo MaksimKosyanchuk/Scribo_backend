@@ -1,48 +1,46 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const {get_public_user_by} = require('./users.services')
+const bcrypt = require("bcryptjs")
+const jwt = require("jsonwebtoken")
+const User = require("../models/User")
+const { get_public_user_by } = require("./users.services")
 
 async function compare_passwords(password, from_db) {    
-    return await bcrypt.compare(password, from_db);
+    return await bcrypt.compare(password, from_db)
 }
 
 async function set_jwt_token(user_id) {
-    const key = process.env.JWTKEY;
+    const key = process.env.JWTKEY
     
-    let token = await jwt.sign(
+    return jwt.sign(
         {user_id: user_id},
         key,
         {}
-    );
-
-    return token;
+    )
 }
 
 async function get_jwt_token(token) {
     const key = process.env.JWTKEY
 
     return jwt.verify(token, key, function(err, decoded) {
-        if (err){
-            return({
+        if (err) {
+            return {
                 status: false,
                 message: err,
                 data: null
-            })
+            }
         }
-        return ({
+
+        return {
             status: true,
             message: "",
             data: decoded
-        });
-      });
+        }
+      })
 }
 
 async function login(user_nick_name, user_password) {
+    const auth_result = auth_data_validation(user_nick_name, user_password)
 
-    const auth_result = auth_data_validation(user_nick_name, user_password);
-
-    if(!auth_result.status){
+    if(!auth_result.status) {
         return {
             status: false,
             message: auth_result.message,
@@ -50,7 +48,7 @@ async function login(user_nick_name, user_password) {
         }
     }
 
-    const find_user = await User.findOne({ 'nick_name': user_nick_name });
+    const find_user = await User.findOne({ "nick_name": user_nick_name })
 
     if(!find_user) {
         return {
@@ -59,12 +57,13 @@ async function login(user_nick_name, user_password) {
             data: null
         }
     } 
+
     const is_match = await compare_passwords(user_password, find_user.password)
    
     if(!is_match) {
         return {
             status: false,
-            message: "incorrect password ",
+            message: "incorrect password",
             data: null
         }
     }
@@ -76,18 +75,32 @@ async function login(user_nick_name, user_password) {
     }
 }
 
-function auth_data_validation(nick_name, password)
-{
-    if(!nick_name || !password) return { status: false, message: "invalid nickname or password" }
-    if( 8 > password.length || password.length > 100) return { status: false, message: "Password length must be more than 8 and less then 100!" }
-    return { status: true, message: "authorized" }
+function auth_data_validation(nick_name, password) {
+    if(!nick_name || !password) {
+        return {
+            status: false,
+            message: "invalid nickname or password" 
+        }
+    }
+
+    if(8 > password.length || password.length > 100) { 
+        return {
+            status: false,
+            message: "Password length must be more than 8 and less then 100!" 
+        }
+    }
+
+    return {
+        status: true,
+        message: "authorized" 
+    }
 }
 
 async function register(req) {
-    const { nick_name, password } = req.body;
-
+    const { nick_name, password } = req.body
     let auth = auth_data_validation(nick_name, password)
-    if(!auth.status){
+
+    if(!auth.status) {
         return {
             status: false,
             message: auth.message,
@@ -95,7 +108,8 @@ async function register(req) {
         }
     }
 
-    let user = await get_public_user_by('nick_name', nick_name);
+    let user = await get_public_user_by("nick_name", nick_name)
+
     if (user.status) {
         return {
             status: false,
@@ -122,7 +136,8 @@ async function register(req) {
 function validate_image(avatar){
     // проверить фотку, если ее вообще нет(undefined) или пустой/неверный путь,
     //то вернуть null, в ином случае вернуть путь
-    let is_link = /^https?:\/\/\S+$/.test(avatar);
+    let is_link = /^https?:\/\/\S+$/.test(avatar)
+
     return {
         status: is_link,
         message: is_link ? "Image path is correct" : "Image path is not a link",
@@ -131,7 +146,7 @@ function validate_image(avatar){
 }
 
 async function set_password_hash(password) {
-    return await bcrypt.hashSync(password, process.env.PSSWORD_SALT);
+    return bcrypt.hashSync(password, process.env.PSSWORD_SALT)
 }
 
 module.exports = {
@@ -140,4 +155,4 @@ module.exports = {
     register,
     get_jwt_token,
     validate_image
-};
+}
