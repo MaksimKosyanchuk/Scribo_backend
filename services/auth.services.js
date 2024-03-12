@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const User = require("../models/User")
-const { get_public_user_by } = require("./users.services")
+const { get_user } = require("./users.services")
 
 async function compare_passwords(password, from_db) {    
     return await bcrypt.compare(password, from_db)
@@ -48,9 +48,9 @@ async function login(user_nick_name, user_password) {
         }
     }
 
-    const find_user = await User.findOne({ "nick_name": user_nick_name })
+    const find_user = await get_user({ 'nick_name': user_nick_name }, { with_password: true })
 
-    if(!find_user) {
+    if(!find_user.status) {
         return {
             status: false,
             message: "User doesn`t exists",
@@ -58,7 +58,7 @@ async function login(user_nick_name, user_password) {
         }
     } 
 
-    const is_match = await compare_passwords(user_password, find_user.password)
+    const is_match = await compare_passwords(user_password, find_user.data.password)
    
     if(!is_match) {
         return {
@@ -108,7 +108,7 @@ async function register(req) {
         }
     }
 
-    let user = await get_public_user_by("nick_name", nick_name)
+    let user = await get_user({ "nick_name": nick_name })
 
     if (user.status) {
         return {
@@ -150,7 +150,6 @@ async function set_password_hash(password) {
 }
 
 module.exports = {
-    compare_passwords,
     login,
     register,
     get_jwt_token,

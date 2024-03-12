@@ -1,13 +1,11 @@
 const { Router } = require('express')
-const Post = require('../models/Post')
-const User = require('../models/User')
-const { create_post, get_post_by_id, get_posts } = require('../services/posts.services')
+const { create_post, get_posts } = require('../services/posts.services')
 
 const router = Router()
 
 router.get('/', async (req, res) => {
     try {
-        let posts = await get_posts();
+        let posts = await get_posts(req.query);
 
         return res.status(200).json({
             status: posts.status ? 'success' : 'error',
@@ -22,18 +20,18 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
     try {
-        let post = await get_post_by_id(req.params.id)
+        let posts = await get_posts({ "_id": req.params.id })
 
         return res.status(200).json({
-            status: post.status? 'success' : 'error',
-            message: post.message,
-            data: post.data
+            status: posts.status ? 'success' : 'error',
+            message: posts.message,
+            data: posts.data ? posts.data[0] : null
         })
     }
     catch(e) {
         console.log(e)
     }
-});
+})
 
 router.post('/create-post', async (req, res) => {
     try {

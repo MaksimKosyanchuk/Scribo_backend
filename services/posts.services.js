@@ -1,7 +1,6 @@
-const { get_public_user_by } = require('../services/users.services')
 const Post = require('../models/Post')
-const User = require('../models/User')
 const { get_jwt_token, validate_image } = require('./auth.services')
+const { get_user } = require('./users.services')
 
 function post_validation(title, image, content) {
     if(!title || title.replace(' ', '').length == 0) {
@@ -24,38 +23,6 @@ function post_validation(title, image, content) {
     return {
         status: true,
         message: 'Success',
-    }
-}
-
-function id_is_correct(id) {
-    return id.length == 24
-}
-
-async function get_post_by_id(post_id) {
-    if(!id_is_correct(post_id)) {
-        return {
-            status: false,
-            message: 'Input must be a 24 character hex string',
-            data: null
-        }
-    }
-
-    let post = await Post.findById(post_id);
-
-    if(!post) {
-        return {
-            status: false,
-            message: 'Post not found',
-            data: null
-        }
-    }
-
-    post = await insert_author_to_post(post)
-
-    return {
-        status: true,
-        message: 'Success',
-        data: post
     }
 }
 
@@ -82,9 +49,9 @@ async function create_post(req) {
         }
     }
     
-    let user = await User.findOne({ _id: token_result.data.user_id })
+    let user = await get_user({ "_id": token_result.data.user_id })
 
-    if(!user.is_admin) {
+    if(!user.data.is_admin) {
         return {
             status: false,
             message: 'This user doesn`t have permission to create a post!',
@@ -113,38 +80,46 @@ async function create_post(req) {
 async function insert_author_to_post(post) {
     post = post.toObject()
     
-    let author = await get_public_user_by('_id', post.author)
+    let author = await get_user({ '_id': post.author })
 
     post.author = author.status ? author.data : null 
 
     return post
 }
 
-async function get_posts() {
-    let posts = await Post.find()
+async function get_posts(query = {}) {
+    try {
+        let posts = await Post.find( query )
 
-    if (!posts.length) {
+        if (!posts.length) {
+            return {
+                status: true,
+                message: 'There is no posts',
+                data: null
+            }
+        }
+        
+        for (let i = 0; i < posts.length; i++) {
+            posts[i] = await insert_author_to_post(posts[i])
+        }
+        
         return {
             status: true,
-            message: 'There is no posts',
-            data: null
+            message: '',
+            data: posts
         }
     }
-
-    for (let i = 0; i < posts.length; i++) {
-        posts[i] = await insert_author_to_post(posts[i])
-    }
-
-    return {
-        status: true,
-        message: '',
-        data: posts
+    catch(e) {
+        return {
+            status: false,
+            message: e,
+            data: null
+        }
     }
 }
 
 module.exports = {
-    post_validation,
-    get_post_by_id,
-    create_post,
     get_posts,
+    post_validation,
+    create_post
 }

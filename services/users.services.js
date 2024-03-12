@@ -1,42 +1,40 @@
 const User = require('../models/User')
 
-async function get_private_user_by(key, value) {
-    if(!key) throw new Error('Key is null')
+async function get_user(query = {}, options = {
+    with_password: false,
+    with_saved_posts: false
+}) {
+    try {
+        let user = await User.findOne(query)
+        
+        if(!user) {
+            return {
+                status: false,
+                message: 'User not found',
+                data: null
+            }
+        }
 
-    if(!key || !value) return {
-        status: false,
-        message: `Value of ${ key } is null`,
-        data: null
+        user = user.toObject()
+
+        if(!options.with_password) delete user.password
+        if(!options.with_saved_posts) delete user.saved_posts
+
+        return {
+            status: true,
+            message: 'success',
+            data: user
+        }
     }
-
-    let user = await User.findOne({ [key]: value })
-    
-    if(!user) {
+    catch(e) {
         return {
             status: false,
-            message: 'User not found',
+            message: e,
             data: null
         }
     }
-
-    return {
-        status: true,
-        message: 'success',
-        data: user.toObject()
-    }
-}
-
-async function get_public_user_by(key, value) {
-    let user = await get_private_user_by(key, value)
-
-    delete user.data._id
-    delete user.data.password
-    delete user.data.saved_posts
-
-    return user
 }
 
 module.exports = {
-    get_public_user_by,
-    get_private_user_by
+    get_user
 }

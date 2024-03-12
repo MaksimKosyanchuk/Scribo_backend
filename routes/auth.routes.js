@@ -10,9 +10,7 @@ router.post('/login', async (req, res) => {
         return res.status(200).json({
             status: result.status ? 'success' : 'error',
             message: result.message,
-            data: {
-                'token' : result.data
-            }
+            data: result.data
         })
     }
     catch(e) {

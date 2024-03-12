@@ -1,5 +1,6 @@
 const { get_jwt_token} = require('./auth.services')
-const { get_private_user_by } = require('./users.services')
+const { get_user } = require('./users.services')
+
 
 async function get_profile(token) {
     if(!token) {
@@ -20,7 +21,7 @@ async function get_profile(token) {
         }
     }
     
-    user = await get_private_user_by('_id', token_result.data.user_id)
+    user = await get_user({ '_id': token_result.data.user_id }, { with_saved_posts: true })
 
     delete user.data._id;
     delete user.data.password;
