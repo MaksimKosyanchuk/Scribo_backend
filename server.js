@@ -12,6 +12,8 @@ app.use('/api/posts', require('./routes/posts.routes'))
 app.use('/api/users', require('./routes/users.routes'))
 app.use('/api/auth', require('./routes/auth.routes'))
 app.use('/api/profile', require('./routes/profile.routes'))
+app.use('/api', require('./routes/default.routes'))
+app.use('/', require('./routes/default.routes'))
 
 const start = async () => {
     try {
