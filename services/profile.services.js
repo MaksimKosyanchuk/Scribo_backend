@@ -12,7 +12,6 @@ async function get_profile(token) {
     }
 
     const token_result = await get_jwt_token(token)
-    
     if(!token_result.status) {
         return {
             status: false,
@@ -20,11 +19,16 @@ async function get_profile(token) {
             data: null
         }
     }
-    
-    user = await get_user({ '_id': token_result.data.user_id }, { with_saved_posts: true })
 
-    delete user.data._id;
-    delete user.data.password;
+    let user = await get_user({ 'id': token_result.data.user_id }, { with_saved_posts: true })
+
+    if(!user) {
+        return {
+            status: false,
+            message: "user not found",
+            data: null
+        }
+    }
 
     return {
         status: true,

@@ -89,6 +89,7 @@ async function insert_author_to_post(post) {
 
 async function get_posts(query = {}) {
     try {
+        console.log("get posts, ", query)
         let posts = await Post.find( query )
 
         if (!posts.length) {

@@ -28,11 +28,10 @@ async function get_jwt_token(token) {
                 data: null
             }
         }
-
         return {
             status: true,
             message: "",
-            data: decoded
+            data:  decoded
         }
       })
 }
