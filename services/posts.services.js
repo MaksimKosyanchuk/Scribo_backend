@@ -30,7 +30,7 @@ async function create_post(req) {
     const { token, title, featured_image, content_text } = req.body
 
     const token_result = await get_jwt_token(token)
-    
+
     if(!token_result.status) {
         return {
             status: false,

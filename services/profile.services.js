@@ -1,4 +1,4 @@
-const { get_jwt_token} = require('./auth.services')
+const { get_jwt_token, compare_passwords } = require('./auth.services')
 const { get_user } = require('./users.services')
 const { get_posts } = require('./posts.services')
 const { Types } = require('mongoose');
@@ -14,16 +14,17 @@ async function get_profile(token) {
     }
 
     const token_result = await get_jwt_token(token)
+
     if(!token_result.status) {
         return {
             status: false,
-            message: `Incorrect jwt token - ${token_result.message}`,
+            message: `Incorrect jwt token - ${token}`,
             data: null
         }
     }
 
-    let user = await get_user({ 'id': token_result.data.user_id }, { with_saved_posts: true })
-
+    let user = await get_user({ '_id': token_result.data }, { with_saved_posts: true })
+    
     if(!user) {
         return {
             status: false,
