@@ -6,7 +6,7 @@ router.get('/', async (req, res) => {
 
     return res.status(200).json({
         status: 'success',
-        message: 'server is working, use /api/ for post/get query'
+        message: `Server is working, use /api/ for post/get query`
     })
 })
 

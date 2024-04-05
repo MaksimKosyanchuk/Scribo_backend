@@ -21,6 +21,7 @@ router.post('/login', async (req, res) => {
 router.post('/register', async (req, res) => {
     try {
         let reg = await register(req)
+        
         return res.status(200).json({
             status: reg.status ? 'success' : 'error',
             message: reg.message,
