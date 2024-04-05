@@ -25,7 +25,7 @@ async function get_profile(token) {
     if(!user) {
         return {
             status: false,
-            message: "user not found",
+            message: "User not found",
             data: null
         }
     }

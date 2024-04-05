@@ -6,7 +6,7 @@ function post_validation(title, image, content) {
     if(!title || title.replace(' ', '').length == 0) {
         return {
             status: false,
-            message: 'Wtf are u doing, dude, this title shouldn`t be empty or only spaces symbols',
+            message: 'Incorrect "title"',
         }
     }
 
@@ -39,7 +39,7 @@ async function create_post(req) {
         }
     }
 
-    let validation_result = post_validation( title, featured_image, content_text)
+    let validation_result = post_validation(title, featured_image, content_text)
         
     if(!validation_result.status) {
         return {
@@ -54,7 +54,7 @@ async function create_post(req) {
     if(!user.data.is_admin) {
         return {
             status: false,
-            message: 'This user doesn`t have permission to create a post!',
+            message: 'This user doesn`t have permission to create a post',
             data: null
         }
     }
@@ -89,7 +89,6 @@ async function insert_author_to_post(post) {
 
 async function get_posts(query = {}) {
     try {
-        console.log("get posts, ", query)
         let posts = await Post.find( query )
 
         if (!posts.length) {

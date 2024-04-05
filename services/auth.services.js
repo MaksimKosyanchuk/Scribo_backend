@@ -62,7 +62,7 @@ async function login(user_nick_name, user_password) {
     if(!is_match) {
         return {
             status: false,
-            message: "incorrect password",
+            message: 'Incorrect "password',
             data: null
         }
     }
@@ -78,20 +78,20 @@ function auth_data_validation(nick_name, password) {
     if(!nick_name || !password) {
         return {
             status: false,
-            message: "invalid nickname or password" 
+            message: 'Invalid "nick_name" or "password"' 
         }
     }
 
     if(8 > password.length || password.length > 100) { 
         return {
             status: false,
-            message: "Password length must be more than 8 and less then 100!" 
+            message: '"password" length must be more than 8 and less then 100!'
         }
     }
 
     return {
         status: true,
-        message: "authorized" 
+        message: "Authorized" 
     }
 }
 
@@ -117,29 +117,29 @@ async function register(req) {
         }
     }
 
+    const avatar = validate_image(req.body.avatar)
+
     const newUser = new User({
         nick_name: nick_name,
         password: await set_password_hash(password),
-        avatar: validate_image(req.body.avatar).data
+        avatar: avatar.data
     })
     
     await newUser.save();
 
     return {
         status: true,
-        message: "Registrated",
+        message: `Registrated, ${avatar.message}`,
         data: user.data
     }
 }
 
 function validate_image(avatar){
-    // проверить фотку, если ее вообще нет(undefined) или пустой/неверный путь,
-    //то вернуть null, в ином случае вернуть путь
     let is_link = /^https?:\/\/\S+$/.test(avatar)
 
     return {
         status: is_link,
-        message: is_link ? "Image path is correct" : "Image path is not a link",
+        message: is_link ? '"avatar" path is correct' : '"avatar" path is not a link',
         data: is_link ? avatar : null 
     }
 }
