@@ -90,7 +90,7 @@ async function insert_author_to_post(post) {
 async function get_posts(query = {}) {
     try {
         let posts = await Post.find( query )
-
+        
         if (!posts.length) {
             return {
                 status: true,
