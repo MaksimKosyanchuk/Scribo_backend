@@ -69,7 +69,7 @@ async function login(user_nick_name, user_password) {
     if(!is_match) {
         return {
             status: false,
-            message: 'Incorrect "password',
+            message: 'Incorrect "password"',
             data: null
         }
     }
