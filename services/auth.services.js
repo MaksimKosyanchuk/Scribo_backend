@@ -9,7 +9,7 @@ async function compare_passwords(password, from_db) {
 
 async function set_jwt_token(user_id) {
     const key = process.env.JWTKEY
-    
+
     return jwt.sign(
         {user_id: user_id},
         key,
@@ -19,21 +19,28 @@ async function set_jwt_token(user_id) {
 
 async function get_jwt_token(token) {
     const key = process.env.JWTKEY
-
-    return jwt.verify(token, key, function(err, decoded) {
-        if (err) {
+    try {
+        const decoded = await jwt.verify(token, key);
+        if (decoded && decoded.user_id) {
+            return {
+                status: true,
+                message: "",
+                data: decoded.user_id
+            };
+        } else {
             return {
                 status: false,
-                message: err,
+                message: "Invalid token or user_id not found",
                 data: null
-            }
+            };
         }
+    } catch (err) {
         return {
-            status: true,
-            message: "",
-            data:  decoded
-        }
-      })
+            status: false,
+            message: err.message,
+            data: null
+        };
+    }
 }
 
 async function login(user_nick_name, user_password) {
@@ -70,7 +77,10 @@ async function login(user_nick_name, user_password) {
     return {
         status: true,
         message: auth_result.message,
-        data: await set_jwt_token(find_user._id)
+        data: {
+            user_id: find_user.data._id,
+            token: await set_jwt_token(find_user.data._id)
+        }
     }
 }
 
@@ -152,5 +162,7 @@ module.exports = {
     login,
     register,
     get_jwt_token,
-    validate_image
+    validate_image,
+    compare_passwords,
+    set_jwt_token
 }
