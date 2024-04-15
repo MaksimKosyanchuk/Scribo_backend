@@ -48,8 +48,12 @@ async function create_post(req) {
             data: null
         }
     }
-    
-    let user = await get_user({ "_id": token_result.data.user_id })
+
+    let user = await get_user({ "_id": token_result.data })
+
+    if(!user.status) {
+        return user
+    }
 
     if(!user.data.is_admin) {
         return {
@@ -62,7 +66,7 @@ async function create_post(req) {
     const img = validate_image(featured_image)
 
     const newPost = new Post({
-        author: token_result.data.user_id,
+        author: token_result.data,
         title: title,
         featured_image: img.data,
         content_text: content_text 
