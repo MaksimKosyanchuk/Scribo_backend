@@ -6,7 +6,7 @@ function post_validation(title, image, content) {
     if(!title || title.replace(' ', '').length == 0) {
         return {
             status: false,
-            message: 'Incorrect "title"',
+            message: "Incorrect 'title'",
         }
     }
 
@@ -16,7 +16,7 @@ function post_validation(title, image, content) {
     if(!content || content.replace(' ', '').length == 0) {
         return {
             status: false,
-            message: 'Content length must be mroe than 0',
+            message: "'content_text' length must be mroe than 0",
         }
     }
 
@@ -26,15 +26,13 @@ function post_validation(title, image, content) {
     }
 }
 
-async function create_post(req) {
-    const { token, title, featured_image, content_text } = req.body
-
+async function create_post(token, title, featured_image, content_text) {
     const token_result = await get_jwt_token(token)
 
     if(!token_result.status) {
         return {
             status: false,
-            message: `Incorrect jwt token - ${token_result.message}`,
+            message: `Incorrect 'token' - ${token_result.message}`,
             data: null
         }
     }

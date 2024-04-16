@@ -8,7 +8,7 @@ async function get_profile(token) {
     if(!token) {
         return {
             status: false,
-            message: 'Token is null',
+            message: "'token' is null",
             data: null
         }
     }
@@ -18,7 +18,7 @@ async function get_profile(token) {
     if(!token_result.status) {
         return {
             status: false,
-            message: `Incorrect jwt token - ${token}`,
+            message: `Incorrect 'token' - ${token}`,
             data: null
         }
     }
@@ -54,7 +54,7 @@ async function __save_post(user, post) {
     } catch (error) {
         return {
             status: false,
-            message: "Failed to save post",
+            message: "Failed to save post: " + error,
             data: { post: post }
         };
     }
@@ -75,7 +75,7 @@ async function __unsave_post(user, post) {
     } catch (error) {
         return {
             status: false,
-            message: "Failed to unsave post",
+            message: "Failed to unsave post: " + error,
             data: { post: post }
         };
     }
@@ -91,7 +91,7 @@ async function save_post(token, post_id) {
     if(!post_id) {
         return {
             status: false,
-            message: '"post_id" is null',
+            message: "'post_id' is null",
             data: null
         }
     }

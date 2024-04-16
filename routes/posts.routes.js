@@ -35,7 +35,7 @@ router.get('/:id', async (req, res) => {
 
 router.post('/create-post', async (req, res) => {
     try {
-        const result = await create_post(req)
+        const result = await create_post(req.body.token, req.body.title, req.body.featured_image, req.body.content_text)
 
         return res.status(200).json({
             status: result.status ? 'success' : 'error',
