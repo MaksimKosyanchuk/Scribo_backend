@@ -4,9 +4,9 @@ const { login, register } = require('../services/auth.services')
 const router = Router();
 
 router.post('/login', async (req, res) => {
+    console.log("START LOGIN")
     try {
         let result = await login(req.body.nick_name, req.body.password) 
-    
         return res.status(200).json({
             status: result.status ? 'success' : 'error',
             message: result.message,
@@ -20,7 +20,7 @@ router.post('/login', async (req, res) => {
 
 router.post('/register', async (req, res) => {
     try {
-        let reg = await register(req)
+        let reg = await register(req.body.nick_name, req.body.password)
         
         return res.status(200).json({
             status: reg.status ? 'success' : 'error',

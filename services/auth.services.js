@@ -105,8 +105,7 @@ function auth_data_validation(nick_name, password) {
     }
 }
 
-async function register(req) {
-    const { nick_name, password } = req.body
+async function register(nick_name, password) {
     let auth = auth_data_validation(nick_name, password)
 
     if(!auth.status) {

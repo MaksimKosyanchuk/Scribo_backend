@@ -1,14 +1,13 @@
-const { get_jwt_token, compare_passwords } = require('./auth.services')
+const { get_jwt_token } = require('./auth.services')
 const { get_user } = require('./users.services')
 const { get_posts } = require('./posts.services')
-const { Types } = require('mongoose');
 const User = require('../models/User')
 
 async function get_profile(token) {
     if(!token) {
         return {
             status: false,
-            message: 'Token is null',
+            message: '"token" is null',
             data: null
         }
     }
@@ -18,7 +17,7 @@ async function get_profile(token) {
     if(!token_result.status) {
         return {
             status: false,
-            message: `Incorrect jwt token - ${token}`,
+            message: `Incorrect token - ${token}`,
             data: null
         }
     }

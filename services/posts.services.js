@@ -26,9 +26,7 @@ function post_validation(title, image, content) {
     }
 }
 
-async function create_post(req) {
-    const { token, title, featured_image, content_text } = req.body
-
+async function create_post(token, title, featured_image, content_text) {
     const token_result = await get_jwt_token(token)
 
     if(!token_result.status) {
