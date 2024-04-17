@@ -6,11 +6,13 @@ require('dotenv').config()
 
 const port = process.env.PORT
 
-const corsOptions ={
-   origin:'*',
-   credentials:true,
-   optionSuccessStatus:200,
-}
+const corsOptions = {
+    origin: '*',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 200,
+};
 
 app.use(cors(corsOptions))
 app.use(express.json({ extended: true }))
