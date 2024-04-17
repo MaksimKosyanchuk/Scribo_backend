@@ -30,7 +30,7 @@ async function get_jwt_token(token) {
         } else {
             return {
                 status: false,
-                message: "Invalid token or user_id not found",
+                message: "Invalid 'token'",
                 data: null
             };
         }
@@ -43,8 +43,8 @@ async function get_jwt_token(token) {
     }
 }
 
-async function login(user_nick_name, user_password) {
-    const auth_result = auth_data_validation(user_nick_name, user_password)
+async function login(nick_name, password) {
+    const auth_result = auth_data_validation(nick_name, password)
 
     if(!auth_result.status) {
         return {
@@ -54,7 +54,7 @@ async function login(user_nick_name, user_password) {
         }
     }
 
-    const find_user = await get_user({ 'nick_name': user_nick_name }, { with_password: true })
+    const find_user = await get_user({ 'nick_name': nick_name }, { with_password: true })
 
     if(!find_user.status) {
         return {
@@ -64,12 +64,12 @@ async function login(user_nick_name, user_password) {
         }
     } 
 
-    const is_match = await compare_passwords(user_password, find_user.data.password)
+    const is_match = await compare_passwords(password, find_user.data.password)
    
     if(!is_match) {
         return {
             status: false,
-            message: 'Incorrect "password"',
+            message: "Incorrect 'password'",
             data: null
         }
     }
@@ -88,14 +88,14 @@ function auth_data_validation(nick_name, password) {
     if(!nick_name || !password) {
         return {
             status: false,
-            message: 'Invalid "nick_name" or "password"' 
+            message: "Invalid 'nick_name' or 'password'" 
         }
     }
 
     if(8 > password.length || password.length > 100) { 
         return {
             status: false,
-            message: '"password" length must be more than 8 and less then 100!'
+            message: "'password' length must be more than 8 and less then 100!"
         }
     }
 
@@ -105,7 +105,11 @@ function auth_data_validation(nick_name, password) {
     }
 }
 
+<<<<<<< HEAD
 async function register(nick_name, password) {
+=======
+async function register(nick_name, password, avatar) {
+>>>>>>> e733090b85b2542af86225c2e310b0a370b7d922
     let auth = auth_data_validation(nick_name, password)
 
     if(!auth.status) {
@@ -126,19 +130,19 @@ async function register(nick_name, password) {
         }
     }
 
-    const avatar = validate_image(req.body.avatar)
+    const avatar_result = validate_image(avatar)
 
     const newUser = new User({
         nick_name: nick_name,
         password: await set_password_hash(password),
-        avatar: avatar.data
+        avatar: avatar_result.data
     })
     
     await newUser.save();
 
     return {
         status: true,
-        message: `Registrated, ${avatar.message}`,
+        message: `Registrated, ${avatar_result.message}`,
         data: user.data
     }
 }
@@ -148,7 +152,7 @@ function validate_image(avatar){
 
     return {
         status: is_link,
-        message: is_link ? '"avatar" path is correct' : '"avatar" path is not a link',
+        message: is_link ? "'avatar' path is correct" : "'avatar' path is not a link",
         data: is_link ? avatar : null 
     }
 }
