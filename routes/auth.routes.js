@@ -20,11 +20,7 @@ router.post('/login', async (req, res) => {
 
 router.post('/register', async (req, res) => {
     try {
-<<<<<<< HEAD
-        let reg = await register(req.body.nick_name, req.body.password)
-=======
         let reg = await register(req.body.nick_name, req.body.password, req.body.avatar)
->>>>>>> e733090b85b2542af86225c2e310b0a370b7d922
         
         return res.status(200).json({
             status: reg.status ? 'success' : 'error',
