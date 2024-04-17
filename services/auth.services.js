@@ -105,11 +105,7 @@ function auth_data_validation(nick_name, password) {
     }
 }
 
-<<<<<<< HEAD
-async function register(nick_name, password) {
-=======
 async function register(nick_name, password, avatar) {
->>>>>>> e733090b85b2542af86225c2e310b0a370b7d922
     let auth = auth_data_validation(nick_name, password)
 
     if(!auth.status) {

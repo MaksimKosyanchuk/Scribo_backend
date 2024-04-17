@@ -7,11 +7,7 @@ async function get_profile(token) {
     if(!token) {
         return {
             status: false,
-<<<<<<< HEAD
-            message: '"token" is null',
-=======
             message: "'token' is null",
->>>>>>> e733090b85b2542af86225c2e310b0a370b7d922
             data: null
         }
     }
@@ -21,11 +17,7 @@ async function get_profile(token) {
     if(!token_result.status) {
         return {
             status: false,
-<<<<<<< HEAD
-            message: `Incorrect token - ${token}`,
-=======
             message: `Incorrect 'token' - ${token}`,
->>>>>>> e733090b85b2542af86225c2e310b0a370b7d922
             data: null
         }
     }

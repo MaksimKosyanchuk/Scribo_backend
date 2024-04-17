@@ -35,12 +35,7 @@ router.get('/:id', async (req, res) => {
 
 router.post('/create-post', async (req, res) => {
     try {
-<<<<<<< HEAD
-        const result = await create_post(req.body.token, req.body.title,
-        req.body.featured_image, req.body.content_text)
-=======
         const result = await create_post(req.body.token, req.body.title, req.body.featured_image, req.body.content_text)
->>>>>>> e733090b85b2542af86225c2e310b0a370b7d922
 
         return res.status(200).json({
             status: result.status ? 'success' : 'error',
