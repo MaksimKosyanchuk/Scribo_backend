@@ -1,6 +1,7 @@
 const { Router } = require('express')
 const { login, register } = require('../services/auth.services')
-
+const multer = require('multer');
+const upload = multer();
 const router = Router();
 
 router.options('/register', (req, res) => {
@@ -24,7 +25,7 @@ router.post('/login', async (req, res) => {
     }
 })
 
-router.post('/register', async (req, res) => {
+router.post('/register', upload.single('avatar'), async (req, res) => {
     try {
         let reg = await register(req.body.nick_name, req.body.password, req.body.avatar)
         

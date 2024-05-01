@@ -1,8 +1,8 @@
 const { Router } = require('express')
 const { create_post, get_posts } = require('../services/posts.services')
+const router = Router()
 const multer = require('multer');
 const upload = multer();
-const router = Router()
 
 router.get('/', async (req, res) => {
     try {

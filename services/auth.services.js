@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const User = require("../models/User")
 const { get_user } = require("./users.services")
+const { upload_image } = require("./upload.services")
 
 async function compare_passwords(password, from_db) {    
     return await bcrypt.compare(password, from_db)
@@ -126,32 +127,24 @@ async function register(nick_name, password, avatar) {
         }
     }
 
-    const avatar_result = validate_image(avatar)
+    const result = await upload_image(avatar)
+    const img = result.status ? result.data.url : null
 
     const newUser = new User({
         nick_name: nick_name,
         password: await set_password_hash(password),
-        avatar: avatar_result.data
+        avatar: img
     })
     
     await newUser.save();
 
     return {
         status: true,
-        message: `Registrated, ${avatar_result.message}`,
+        message: `Registrated`,
         data: user.data
     }
 }
 
-function validate_image(avatar){
-    let is_link = /^https?:\/\/\S+$/.test(avatar)
-
-    return {
-        status: is_link,
-        message: is_link ? "'avatar' path is correct" : "'avatar' path is not a link",
-        data: is_link ? avatar : null 
-    }
-}
 
 async function set_password_hash(password) {
     return bcrypt.hashSync(password, process.env.PSSWORD_SALT)
@@ -161,7 +154,6 @@ module.exports = {
     login,
     register,
     get_jwt_token,
-    validate_image,
     compare_passwords,
     set_jwt_token
 }

@@ -60,7 +60,7 @@ async function create_post(token, title, featured_image, content_text) {
     }
 
     const response = await upload_image(featured_image)
-    const img = response.status ? response.data.url : ""
+    const img = response.status ? response.data.url : null
     
     const newPost = new Post({
         author: token_result.data,
