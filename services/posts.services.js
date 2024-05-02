@@ -73,7 +73,7 @@ async function create_post(token, title, featured_image, content_text) {
 
     return {
         status: true,
-        message: 'Post created, ' + img.message,
+        message: 'Post created, ',
         data: newPost
     }
 }
