@@ -1,7 +1,8 @@
 const { Router } = require('express')
 const { create_post, get_posts } = require('../services/posts.services')
-
 const router = Router()
+const multer = require('multer');
+const upload = multer();
 
 router.get('/', async (req, res) => {
     try {
@@ -33,7 +34,7 @@ router.get('/:id', async (req, res) => {
     }
 })
 
-router.post('/create-post', async (req, res) => {
+router.post('/create-post', upload.single('featured_image'), async (req, res) => {
     try {
         const result = await create_post(req.body.token, req.body.title, req.body.featured_image, req.body.content_text)
 

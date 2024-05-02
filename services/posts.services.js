@@ -1,17 +1,15 @@
 const Post = require('../models/Post')
-const { get_jwt_token, validate_image } = require('./auth.services')
+const { get_jwt_token } = require('./auth.services')
 const { get_user } = require('./users.services')
+const {upload_image} = require("./upload.services") 
 
-function post_validation(title, image, content) {
+function post_validation(title, content) {
     if(!title || title.replace(' ', '').length == 0) {
         return {
             status: false,
             message: "Incorrect 'title'",
         }
     }
-
-    //добавить валидацию фотки
-    //if(image && )
 
     if(!content || content.replace(' ', '').length == 0) {
         return {
@@ -37,7 +35,7 @@ async function create_post(token, title, featured_image, content_text) {
         }
     }
 
-    let validation_result = post_validation(title, featured_image, content_text)
+    let validation_result = post_validation(title, content_text)
         
     if(!validation_result.status) {
         return {
@@ -61,12 +59,13 @@ async function create_post(token, title, featured_image, content_text) {
         }
     }
 
-    const img = validate_image(featured_image)
-
+    const response = await upload_image(featured_image)
+    const img = response.status ? response.data.url : null
+    
     const newPost = new Post({
         author: token_result.data,
         title: title,
-        featured_image: img.data,
+        featured_image: img,
         content_text: content_text 
     })
     
@@ -74,7 +73,7 @@ async function create_post(token, title, featured_image, content_text) {
 
     return {
         status: true,
-        message: 'Post created, ' + img.message,
+        message: 'Post created, ',
         data: newPost
     }
 }
