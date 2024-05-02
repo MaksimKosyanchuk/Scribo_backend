@@ -1,8 +1,10 @@
 const { Router } = require('express')
 const { login, register } = require('../services/auth.services')
 const multer = require('multer');
-const upload = multer();
 const router = Router();
+const upload = multer({
+    limits: { fieldSize: 25 * 1024 * 1024 }
+  })
 
 router.options('/register', (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');

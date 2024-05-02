@@ -2,7 +2,9 @@ const { Router } = require('express')
 const { create_post, get_posts } = require('../services/posts.services')
 const router = Router()
 const multer = require('multer');
-const upload = multer();
+const upload = multer({
+    limits: { fieldSize: 25 * 1024 * 1024 }
+  })
 
 router.get('/', async (req, res) => {
     try {
