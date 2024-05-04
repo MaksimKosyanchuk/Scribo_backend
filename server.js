@@ -26,8 +26,10 @@ app.use('/api', require('./routes/default.routes'))
 app.use('/', require('./routes/default.routes'))
 
 const start = async () => {
+    console.log("start")
     try {
         global.Logger = new logger()
+        console.log("logger is initialized")
         app.listen(port, () => global.Logger.log(`server started on port: ${port}`))
         await mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.lccalb5.mongodb.net/?retryWrites=true&w=majority`)
         global.Logger.log("successfully connected to mongo db")
