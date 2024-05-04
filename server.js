@@ -3,6 +3,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const app = express()
 require('dotenv').config()
+const logger = require('./services/log')
 
 const port = process.env.PORT
 
@@ -26,11 +27,14 @@ app.use('/', require('./routes/default.routes'))
 
 const start = async () => {
     try {
+        global.Logger = new logger()
+        app.listen(port, () => global.Logger.log(`server started on port: ${port}`))
         await mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.lccalb5.mongodb.net/?retryWrites=true&w=majority`)
-        app.listen(port, () => console.log('server started on port: ', port))
+        global.Logger.log("successfully connected to mongo db")
     }
     catch (e) { 
-        console.log(e.message)
+        global.Logger.log(e.message)
+        global.Logger.log("Ending program")
         process.exit(1)
     }
 }
