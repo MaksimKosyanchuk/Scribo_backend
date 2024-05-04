@@ -14,31 +14,58 @@ router.options('/register', (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
+    global.Logger.log(`login request from: ${req.ip}`)
     try {
-        let result = await login(req.body.nick_name, req.body.password) 
-        return res.status(200).json({
+        const result = await login(req.body.nick_name, req.body.password) 
+        
+        const result_data = {
             status: result.status ? 'success' : 'error',
             message: result.message,
             data: result.data
-        })
+        }
+
+        global.Logger.log_JSON(result_data)
+
+        res.status(200).json(result_data)
     }
     catch(e) {
-        console.log(e)
+        const result_data = {
+            status: "error",
+            message: e.message,
+            data: null
+        }
+
+        global.Logger.log_JSON(result_data)
+
+        res(500).json(result_data)
     }
 })
 
 router.post('/register', upload.single('avatar'), async (req, res) => {
+    global.Logger.log(`register request from: ${req.ip}`)
     try {
-        let reg = await register(req.body.nick_name, req.body.password, req.body.avatar)
+        let result = await register(req.body.nick_name, req.body.password, req.body.avatar)
         
-        return res.status(200).json({
-            status: reg.status ? 'success' : 'error',
-            message: reg.message,
-            data: reg.data
-        })
+        const result_data = {
+            status: result.status ? 'success' : 'error',
+            message: result.message,
+            data: result.data
+        }
+
+        global.Logger.log_JSON(result_data)
+
+        res.status(200).json(result_data)
     }
     catch (e) {
-        console.log(e)
+        const result_data = {
+            status: "error",
+            message: e.message,
+            data: null
+        }
+
+        global.Logger.log_JSON(result_data)
+
+        res.status(500).json(result_data)
     }
 })
 
