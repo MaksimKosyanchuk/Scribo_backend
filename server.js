@@ -33,8 +33,7 @@ const start = async () => {
         global.Logger.log("successfully connected to mongo db")
     }
     catch (e) { 
-        global.Logger.log(e.message)
-        global.Logger.log("Ending program")
+        console.log("Ending program")
         process.exit(1)
     }
 }
