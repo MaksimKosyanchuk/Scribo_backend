@@ -2,6 +2,7 @@ const fs = require('fs');
 
 class Logger {
     constructor() {
+        return
         this._create_directory()
     }
     
@@ -26,6 +27,7 @@ class Logger {
     }
 
     log(message) {
+        return
         const text = `[${new Date().toLocaleDateString()} | ${new Date().toLocaleTimeString()}] ${message}\n`
         try {
             fs.appendFileSync(this.session_directory, text);
