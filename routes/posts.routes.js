@@ -8,7 +8,6 @@ const upload = multer({
 
 router.get('/', async (req, res) => {
     global.Logger.log(`get posts request from: ${req.ip}`)
-
     try {
         const posts = await get_posts(req.query)
 
@@ -18,7 +17,7 @@ router.get('/', async (req, res) => {
             data: posts.data
         }
 
-        global.Logger.log_JSON(result_data)
+        global.Logger.log(`response to: ${req.ip}`, result_data)
 
         res.status(200).json(result_data)
     }
@@ -29,7 +28,7 @@ router.get('/', async (req, res) => {
             data: null
         }
 
-        global.Logger.log_JSON(result_data)
+        global.Logger.log(`response to: ${req.ip}`, result_data)
 
         res.status(500).json(result_data)
     }
@@ -47,7 +46,7 @@ router.get('/:id', async (req, res) => {
             data: posts.data ? posts.data[0] : null
         }
 
-        global.Logger.log_JSON(result_data)
+        global.Logger.log(`response to: ${req.ip}`, result_data)
 
         res.status(200).json(result_data)
     }
@@ -58,7 +57,7 @@ router.get('/:id', async (req, res) => {
             data: null
         }
 
-        global.Logger.log_JSON(result_data)
+        global.Logger.log(`response to: ${req.ip}`, result_data)
 
         res.status(500).json(result_data)
     }
@@ -75,7 +74,7 @@ router.post('/create-post', upload.single('featured_image'), async (req, res) =>
             data: result.data
         }
 
-        global.Logger.log_JSON(result_data)
+        global.Logger.log(`response to: ${req.ip}`, result_data)
 
         res.status(200).json(result_data)
 
@@ -86,7 +85,7 @@ router.post('/create-post', upload.single('featured_image'), async (req, res) =>
             data: null
         }
 
-        global.Logger.log_JSON(result_data)
+        global.Logger.log(`response to: ${req.ip}`, result_data)
 
         res.status(500).json(result_data)
     }

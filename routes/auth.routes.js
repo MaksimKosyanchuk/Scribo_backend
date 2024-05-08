@@ -24,18 +24,18 @@ router.post('/login', async (req, res) => {
             data: result.data
         }
 
-        global.Logger.log_JSON(result_data)
+        global.Logger.log(`response to: ${req.ip}`, result_data)
 
         res.status(200).json(result_data)
     }
     catch(e) {
         const result_data = {
             status: "error",
-            message: e.message,
+            message: e.message, 
             data: null
         }
 
-        global.Logger.log_JSON(result_data)
+        global.Logger.log(`response to: ${req.ip}`, result_data)
 
         res(500).json(result_data)
     }
@@ -44,7 +44,7 @@ router.post('/login', async (req, res) => {
 router.post('/register', upload.single('avatar'), async (req, res) => {
     global.Logger.log(`register request from: ${req.ip}`)
     try {
-        let result = await register(req.body.nick_name, req.body.password, req.body.avatar)
+        const result = await register(req.body.nick_name, req.body.password, req.body.avatar)
         
         const result_data = {
             status: result.status ? 'success' : 'error',
@@ -52,7 +52,7 @@ router.post('/register', upload.single('avatar'), async (req, res) => {
             data: result.data
         }
 
-        global.Logger.log_JSON(result_data)
+        global.Logger.log(`response to: ${req.ip}`, result_data)
 
         res.status(200).json(result_data)
     }
@@ -63,7 +63,7 @@ router.post('/register', upload.single('avatar'), async (req, res) => {
             data: null
         }
 
-        global.Logger.log_JSON(result_data)
+        global.Logger.log(`response to: ${req.ip}`, result_data)
 
         res.status(500).json(result_data)
     }
