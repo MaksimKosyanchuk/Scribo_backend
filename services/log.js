@@ -1,43 +1,20 @@
 const fs = require('fs');
+const Log = require('../models/Log')
 
-class Logger {
-    constructor() {
-        return
-        this._create_directory()
-    }
+class Logger {    
     
-    _create_directory() {
-        const log_directory = "./log"
+    async log(message, data=null) {
+        try{
+            const logger = new Log({
+                message: message,
+                data: data
+            })
 
-        if (!fs.existsSync(log_directory)) {
-            fs.mkdirSync(log_directory)
+            await logger.save();
         }
-        const date_directory = log_directory + "/" + `${new Date().toLocaleDateString().replace(/\//g, '.')}`;
-        if(!fs.existsSync(date_directory)) {
-            fs.mkdirSync(date_directory)
+        catch(e) {
+            console.log(e.message)
         }
-
-        this.session_directory = date_directory + "/" + new Date().toLocaleTimeString().replace(/:/g, '-') + ".log"
-        
-        try {
-            fs.writeFileSync(this.session_directory, "");
-        } catch (err) {
-            console.error('Error:', err);
-        }
-    }
-
-    log(message) {
-        return
-        const text = `[${new Date().toLocaleDateString()} | ${new Date().toLocaleTimeString()}] ${message}\n`
-        try {
-            fs.appendFileSync(this.session_directory, text);
-        } catch (err) {
-            console.error('Error:', err);
-        }
-    }
-
-    log_JSON(object) {
-        this.log(JSON.stringify(object))
     }
 }
 

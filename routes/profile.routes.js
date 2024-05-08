@@ -15,7 +15,7 @@ router.post('/', async (req, res) => {
             data: user.data
         }
 
-        global.Logger.log_JSON(result_data)
+        global.Logger.log(`response to: ${req.ip}`, result_data)
 
         res.status(200).json(result_data)
     }
@@ -26,7 +26,7 @@ router.post('/', async (req, res) => {
             data: null
         }
 
-        global.Logger.log_JSON(result_data)
+        global.Logger.log(`response to: ${req.ip}`, result_data)
 
         res.status(500).json(result_data)
     }
@@ -44,7 +44,7 @@ router.post('/save-post', async (req, res) => {
             data: user.data
         }
 
-        global.Logger.log_JSON(result_data)
+        global.Logger.log(`response to: ${req.ip}`, result_data)
 
         res.status(200).json(result_data)
     }
@@ -55,7 +55,7 @@ router.post('/save-post', async (req, res) => {
             data: null
         }
 
-        global.Logger.log_JSON(result_data)
+        global.Logger.log(`response to: ${req.ip}`, result_data)
 
         res.status(500).json(result_data)
     }
