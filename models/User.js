@@ -6,6 +6,7 @@ let shema = new Schema({
     avatar: {type: String, required: false},
     created_date: {type: Date, required: true, default: Date.now},
     is_admin: {type: Boolean, required: true, default: false},
+    is_verified: {type: Boolean, required: true, default: false},
     saved_posts: [{
         type: Types.ObjectId,
         ref: "Post",
