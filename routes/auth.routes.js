@@ -44,11 +44,12 @@ router.post('/login', async (req, res) => {
 router.post('/register', upload.single('avatar'), async (req, res) => {
     global.Logger.log(`register request from: ${req.ip}`)
     try {
-        const result = await register(req.body.nick_name, req.body.password, req.body.avatar)
+        const result = await register(req.body.nick_name, req.body.password, req.body.description, req.body.avatar)
         
         const result_data = {
             status: result.status ? 'success' : 'error',
             message: result.message,
+            description: result.description,
             data: result.data
         }
 
