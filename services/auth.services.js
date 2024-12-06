@@ -85,29 +85,54 @@ async function login(nick_name, password) {
     }
 }
 
-function auth_data_validation(nick_name, password) {
-    if(!nick_name || !password) {
+function auth_data_validation(nick_name, password, description) {
+    if(!description){
+        description = null
+    }
+    else{
+        if(description.length > 30) {
+            return {
+                status: false,
+                message: "Description must be less then 30",
+                data: {
+                    description: description
+                }
+            }
+        }
+        
+    }
+    
+    if(!nick_name || nick_name.length < 3 || nick_name.length > 20) {
         return {
             status: false,
-            message: "Invalid 'nick_name' or 'password'" 
+            message: "'nick_name' must be more then 2 and less then 21!",
+            data: {
+                description: description
+            }
         }
     }
-
-    if(8 > password.length || password.length > 100) { 
+    
+    if(!password || password.length < 8 || password.length > 20) {
         return {
             status: false,
-            message: "'password' length must be more than 8 and less then 100!"
+            message: "'passowrd' must be more then 7 and less then 21!",
+            data: {
+                description: description
+            }
         }
     }
 
     return {
         status: true,
-        message: "Authorized" 
+        message: "",
+        data: {
+            description: description
+        }
     }
 }
 
-async function register(nick_name, password, avatar) {
-    let auth = auth_data_validation(nick_name, password)
+async function register(nick_name, password, description, avatar) {
+    let auth = auth_data_validation(nick_name, password, description)
 
     if(!auth.status) {
         return {
@@ -133,6 +158,7 @@ async function register(nick_name, password, avatar) {
     const newUser = new User({
         nick_name: nick_name,
         password: await set_password_hash(password),
+        description: auth.data.description,
         avatar: img
     })
     
@@ -141,7 +167,7 @@ async function register(nick_name, password, avatar) {
     return {
         status: true,
         message: `Registrated`,
-        data: user.data
+        data: newUser
     }
 }
 
