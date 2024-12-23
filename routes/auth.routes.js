@@ -4,7 +4,7 @@ const multer = require('multer');
 const router = Router();
 const upload = multer({
     limits: { fieldSize: 25 * 1024 * 1024 }
-  })
+})
 
 router.options('/register', (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -44,7 +44,7 @@ router.post('/login', async (req, res) => {
 router.post('/register', upload.single('avatar'), async (req, res) => {
     global.Logger.log(`register request from: ${req.ip}`)
     try {
-        const result = await register(req.body.nick_name, req.body.password, req.body.description, req.body.avatar)
+        const result = await register(req.body.nick_name, req.body.password, req.body.description, req.file)
         
         const result_data = {
             status: result.status ? 'success' : 'error',

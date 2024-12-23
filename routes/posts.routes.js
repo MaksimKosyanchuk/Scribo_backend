@@ -66,7 +66,7 @@ router.get('/:id', async (req, res) => {
 router.post('/create-post', upload.single('featured_image'), async (req, res) => {
     global.Logger.log(`get create-post request from: ${req.ip}`)
     try {
-        const result = await create_post(req.body.token, req.body.title, req.body.featured_image, req.body.content_text)
+        const result = await create_post(req.body.token, req.body.title, req.file, req.body.content_text)
 
         const result_data = {
             status: result.status ? 'success' : 'error',
