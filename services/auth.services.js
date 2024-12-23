@@ -152,7 +152,7 @@ async function register(nick_name, password, description, avatar) {
         }
     }
 
-    const result = await upload_image(avatar)
+    const result = await upload_image(avatar, "avatar", nick_name)
     const img = result.status ? result.data.url : null
 
     const newUser = new User({
@@ -166,7 +166,13 @@ async function register(nick_name, password, description, avatar) {
 
     return {
         status: true,
-        message: `Registrated`,
+        message: {
+            "User": "Registrated",
+            "Avatar": {
+                "Status": result.status,
+                "Messsage": result.message
+            }             
+        },
         data: newUser
     }
 }
