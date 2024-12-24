@@ -1,10 +1,6 @@
 const User = require('../models/User')
 
-async function get_user(query = {}, options = {
-    with_password: false,
-    with_saved_posts: false
-    }) {
-
+async function get_user(query = {}, options = { with_password: false, with_saved_posts: false }) {
     try {
         let user = await User.findOne(query)
         

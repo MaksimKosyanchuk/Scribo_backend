@@ -12,7 +12,7 @@ async function set_jwt_token(user_id) {
     const key = process.env.JWTKEY
 
     return jwt.sign(
-        {user_id: user_id},
+        { user_id: user_id },
         key,
         {}
     )
@@ -22,20 +22,24 @@ async function get_jwt_token(token) {
     const key = process.env.JWTKEY
     try {
         const decoded = await jwt.verify(token, key);
+        
         if (decoded && decoded.user_id) {
             return {
                 status: true,
                 message: "",
                 data: decoded.user_id
             };
-        } else {
+        }
+
+        else {
             return {
                 status: false,
                 message: "Invalid 'token'",
                 data: null
             };
         }
-    } catch (err) {
+    }
+    catch (err) {
         return {
             status: false,
             message: err.message,
@@ -86,10 +90,11 @@ async function login(nick_name, password) {
 }
 
 function auth_data_validation(nick_name, password, description) {
-    if(!description){
+    if(!description) {
         description = null
     }
-    else{
+
+    else {
         if(description.length > 30) {
             return {
                 status: false,
@@ -99,7 +104,6 @@ function auth_data_validation(nick_name, password, description) {
                 }
             }
         }
-        
     }
     
     if(!nick_name || nick_name.length < 3 || nick_name.length > 20) {
@@ -107,7 +111,7 @@ function auth_data_validation(nick_name, password, description) {
             status: false,
             message: "'nick_name' must be more then 2 and less then 21!",
             data: {
-                description: description
+                nick_name: nick_name
             }
         }
     }
@@ -117,7 +121,7 @@ function auth_data_validation(nick_name, password, description) {
             status: false,
             message: "'passowrd' must be more then 7 and less then 21!",
             data: {
-                description: description
+                password: password
             }
         }
     }
@@ -126,6 +130,8 @@ function auth_data_validation(nick_name, password, description) {
         status: true,
         message: "",
         data: {
+            nick_name: nick_name,
+            password: password,
             description: description
         }
     }
@@ -138,7 +144,7 @@ async function register(nick_name, password, description, avatar) {
         return {
             status: false,
             message: auth.message,
-            data: null
+            data: auth.data
         }
     }
 
@@ -148,7 +154,7 @@ async function register(nick_name, password, description, avatar) {
         return {
             status: false,
             message: "Current login is exists",
-            data: null
+            data: auth.data
         }
     }
 
