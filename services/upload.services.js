@@ -2,20 +2,22 @@ const AWS = require('aws-sdk');
 const path = require('path');
 
 AWS.config.update({
-    accessKeyId: process.env.AWS_ACCESS_KEY, 
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    region: process.env.AWS_REGION
+    accessKeyId: process.env.AWS_CONNECT_ACCESS_KEY, 
+    secretAccessKey: process.env.AWS_CONNECT_SECRET_ACCESS_KEY,
+    region: process.env.AWS_CONNECT_REGION
 });
 
 const s3 = new AWS.S3();
 
 function aws_configure() {
     s3.listBuckets({}, (err, data) => {
-    if (err) {
-        console.log("Ошибка при подключении к AWS:", err);
-    } else {
-        console.log("Подключение к AWS успешно! Список бакетов:", data.Buckets);
-    }
+        if (err) {
+            console.log("Ошибка при подключении к AWS:", err);
+        }
+        
+        else {
+            console.log("Подключение к AWS успешно! Список бакетов: ", data.Buckets);
+        }
     });
 }
 
@@ -37,7 +39,7 @@ function image_validation(img) {
 
 async function upload_image(avatar, type, file_name) {
     try{
-        if(!avatar){
+        if(!avatar) {
             return {
                 status: false,
                 message: "No banner",
@@ -47,7 +49,7 @@ async function upload_image(avatar, type, file_name) {
 
         validation_result = image_validation(avatar)
 
-        if(!validation_result.valid){
+        if(!validation_result.valid) {
             return {
                 status: false,
                 message: validation_result.error,
@@ -55,7 +57,7 @@ async function upload_image(avatar, type, file_name) {
             }
         }
 
-        if(type !== "avatar" && type !== "post_banner"){
+        if(type !== "avatar" && type !== "post_banner") {
             return {
                 status: false,
                 message: 'Incorrect type, should be "avatar" or "post_banner"',
@@ -65,7 +67,7 @@ async function upload_image(avatar, type, file_name) {
 
         else {
             const params = {
-                Bucket: process.env.AWS_BUCKET_NAME,
+                Bucket: process.env.AWS_CONNECT_BUCKET_NAME,
                 Key: `src/${type}/${file_name}${path.extname(avatar.originalname)}`,
                 Body: avatar.buffer,
                 ContentType: avatar.mimetype
@@ -93,8 +95,7 @@ async function upload_image(avatar, type, file_name) {
 
         }
     }
-
-    catch(e){
+    catch(e) {
         return {
             status: false,
             message: e,

@@ -2,7 +2,6 @@ const Post = require('../models/Post')
 const { get_jwt_token } = require('./auth.services')
 const { get_user } = require('./users.services')
 const {upload_image} = require("./upload.services") 
-const { v4: uuidv4 } = require('uuid');
 
 function post_validation(title, content) {
     if(!title || title.replace(' ', '').length == 0) {
@@ -21,7 +20,7 @@ function post_validation(title, content) {
 
     return {
         status: true,
-        message: 'Success',
+        message: "Success",
     }
 }
 
@@ -55,12 +54,12 @@ async function create_post(token, title, featured_image, content_text) {
     if(!user.data.is_admin) {
         return {
             status: false,
-            message: 'This user doesn`t have permission to create a post',
+            message: "This user doesn`t have permission to create a post",
             data: null
         }
     }
 
-    const result = await upload_image(featured_image, "post_banner", `banner`)
+    const result = await upload_image(featured_image, "post_banner", Date.now())
     const img = result.status ? result.data.url : null
     
     const newPost = new Post({
@@ -102,7 +101,7 @@ async function get_posts(query = {}) {
         if (!posts.length) {
             return {
                 status: true,
-                message: 'There is no posts',
+                message: "There is no posts",
                 data: null
             }
         }
@@ -113,7 +112,7 @@ async function get_posts(query = {}) {
         
         return {
             status: true,
-            message: '',
+            message: "",
             data: posts
         }
     }

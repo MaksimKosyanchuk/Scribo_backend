@@ -34,7 +34,7 @@ async function get_profile(token) {
 
     return {
         status: true,
-        message: '',
+        message: "",
         data: user.data
     }
 }
@@ -71,7 +71,8 @@ async function __unsave_post(user, post) {
             message: "Post has been unsaved",
             data: { post: post }
         }
-    } catch (error) {
+    }
+    catch (error) {
         return {
             status: false,
             message: "Failed to unsave post: " + error,
@@ -95,7 +96,7 @@ async function save_post(token, post_id) {
         }
     }
 
-    const posts = await get_posts(query = {  "_id": post_id })
+    const posts = await get_posts(query = { "_id": post_id })
 
     if(!posts.status) {
         return posts
