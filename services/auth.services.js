@@ -50,10 +50,10 @@ async function get_jwt_token(token) {
 
 async function login(nick_name, password) {
     const auth_result = auth_data_validation(nick_name, password)
-
     if(!auth_result.status) {
         return {
             status: false,
+            status_code: auth_result.status_code,
             message: auth_result.message,
             data: null
         }
@@ -64,6 +64,7 @@ async function login(nick_name, password) {
     if(!find_user.status) {
         return {
             status: false,
+            status_code: 1,
             message: "User doesn`t exists",
             data: null
         }
@@ -74,6 +75,7 @@ async function login(nick_name, password) {
     if(!is_match) {
         return {
             status: false,
+            status_code: 2,
             message: "Incorrect 'password'",
             data: null
         }
@@ -81,6 +83,7 @@ async function login(nick_name, password) {
 
     return {
         status: true,
+        status_code: 0,
         message: auth_result.message,
         data: {
             user_id: find_user.data._id,
@@ -98,6 +101,7 @@ function auth_data_validation(nick_name, password, description) {
         if(description.length > 30) {
             return {
                 status: false,
+                status_code: 3,
                 message: "Description must be less then 30",
                 data: {
                     description: description
@@ -109,6 +113,7 @@ function auth_data_validation(nick_name, password, description) {
     if(!nick_name || nick_name.length < 3 || nick_name.length > 20) {
         return {
             status: false,
+            status_code: 1,
             message: "'nick_name' must be more then 2 and less then 21!",
             data: {
                 nick_name: nick_name
@@ -119,6 +124,7 @@ function auth_data_validation(nick_name, password, description) {
     if(!password || password.length < 8 || password.length > 20) {
         return {
             status: false,
+            status_code: 2,
             message: "'passowrd' must be more then 7 and less then 21!",
             data: {
                 password: password
@@ -128,6 +134,7 @@ function auth_data_validation(nick_name, password, description) {
 
     return {
         status: true,
+        status_code: 0,
         message: "",
         data: {
             nick_name: nick_name,
@@ -143,6 +150,7 @@ async function register(nick_name, password, description, avatar) {
     if(!auth.status) {
         return {
             status: false,
+            status_code: auth.status_code,
             message: auth.message,
             data: auth.data
         }
@@ -153,6 +161,7 @@ async function register(nick_name, password, description, avatar) {
     if (user.status) {
         return {
             status: false,
+            status_code: 1,
             message: "Current login is exists",
             data: auth.data
         }
@@ -172,6 +181,7 @@ async function register(nick_name, password, description, avatar) {
 
     return {
         status: true,
+        status_code: 0,
         message: {
             "User": "Registrated",
             "Avatar": {

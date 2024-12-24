@@ -20,6 +20,7 @@ router.post('/login', async (req, res) => {
         
         const result_data = {
             status: result.status ? 'success' : 'error',
+            status_code: result.status_code,
             message: result.message,
             data: result.data
         }
@@ -48,6 +49,7 @@ router.post('/register', upload.single('avatar'), async (req, res) => {
         
         const result_data = {
             status: result.status ? 'success' : 'error',
+            status_code: result.status_code,
             message: result.message,
             description: result.description,
             data: result.data

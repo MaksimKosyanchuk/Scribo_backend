@@ -80,7 +80,7 @@ async function upload_image(avatar, type, file_name) {
                     status: true,
                     message: "Successfully uploaded",
                     data: {
-                        url: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`
+                        url: `https://${process.env.AWS_CONNECT_BUCKET_NAME}.s3.${process.env.AWS_CONNECT_REGION}.amazonaws.com/${params.Key}`
                     }
                 }
             }
