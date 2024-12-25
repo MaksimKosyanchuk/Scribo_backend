@@ -4,7 +4,7 @@ const multer = require('multer');
 const router = Router();
 
 const upload = multer({
-    limits: { fieldSize: 25 * 1024 * 1024 }
+    // limits: { fieldSize: 25 * 1024 * 1024 }
 })
 
 router.options('/register', (req, res) => {
