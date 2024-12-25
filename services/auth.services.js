@@ -143,7 +143,7 @@ async function register(body, avatar) {
     }
 
     const result = await upload_image(avatar, "avatar", body.nick_name)
-    console.log(result)
+
     if(!result.status && result.errors) {
         errors.avatar = result.errors
     }

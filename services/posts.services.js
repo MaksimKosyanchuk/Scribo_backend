@@ -17,7 +17,7 @@ async function field_validation(type, value) {
             if(!value || value.replace(' ', '').length == 0) {
                 return {
                     stais_validtus: false,
-                    message: "Content length must be mroe than 0",
+                    message: "Content length must be more than 0",
                 }
             }
             break;
@@ -90,7 +90,7 @@ async function field_validation(type, value) {
 async function create_post(body, file) {
     const token_result = await get_jwt_token(body.token)
     
-    errors = {}
+   let  errors = {}
     
     for(let item of ['token', 'title', 'content_text']) {
         const validation = await field_validation(item, body[item])
@@ -99,18 +99,21 @@ async function create_post(body, file) {
             errors[item] = validation.message
         }
     }
+    const result = await upload_image(file, "featured_image", Date.now())
+    const img = result.status ? result.data.url : null
+    
+    if(!result.status && result.errors) {
+        errors.featured_image = result.errors
+    }
 
     if(Object.keys(errors).length > 0) {
         return {
             status: false,
             message: "Errors in your form",
-            errors
+            errors: errors
         }
     }
 
-    const result = await upload_image(file, "post_banner", Date.now())
-    const img = result.status ? result.data.url : null
-    
     const newPost = new Post({
         author: token_result.data,
         title: body.title,

@@ -31,14 +31,13 @@ router.post('/login', async (req, res) => {
         res.status(200).json(result_data)
     }
     catch(e) {
-        console.log(e)
         const result_data = {
             status: "error",
             message: e.message, 
             data: null
         }
 
-        global.Logger.log(`response to: ${req.ip}`, result_data)
+        global.Logger.log(`response to: ${req.ip}`, result_data, e)
 
         res.status(500).json(result_data)
     }

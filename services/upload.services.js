@@ -14,11 +14,11 @@ const s3 = new AWS.S3();
 function aws_configure() {
     s3.listBuckets({}, (err, data) => {
         if (err) {
-            console.log("Ошибка при подключении к AWS:", err);
+            global.Logger.log("Ошибка при подключении к AWS:", err);
         }
         
         else {
-            console.log("Подключение к AWS успешно! Список бакетов: ", data.Buckets);
+            global.Logger.log("Подключение к AWS успешно! Список бакетов: ", data.Buckets);
         }
     });
 }
@@ -50,17 +50,12 @@ async function upload_image(avatar, type, file_name) {
                 data: null
             }
         }
-        
-        if((!type || type !== "avatar") && (!type || type !== "post_banner")) {
-            return {
-                status: false,
-                message: 'Incorrect type, should be "avatar" or "post_banner"',
-                data: type
-            }
-        }
 
         errors = image_validation(avatar)
-        console.log(errors)
+        
+        if((!type || type !== "avatar") && (!type || type !== "featured_image")) {
+            errors.push('Incorrect type, should be "avatar" or "featured_image"')
+        }
 
         if(errors.length > 0) {
             return {
