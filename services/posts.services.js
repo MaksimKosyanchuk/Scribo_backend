@@ -3,70 +3,122 @@ const { get_jwt_token } = require('./auth.services')
 const { get_user } = require('./users.services')
 const {upload_image} = require("./upload.services") 
 
-function post_validation(title, content) {
-    if(!title || title.replace(' ', '').length == 0) {
-        return {
-            status: false,
-            message: "Incorrect 'title'",
-        }
-    }
+async function field_validation(type, value) {
+    switch(type){
+        case "title":
+            if(!value || value.replace(' ', '').length == 0) {
+                return {
+                    is_valid: false,
+                    message: "Title must not be empty",
+                }
+            }
+            break;
+        case "content_text":
+            if(!value || value.replace(' ', '').length == 0) {
+                return {
+                    stais_validtus: false,
+                    message: "Content length must be more than 0",
+                }
+            }
+            break;
+        case "token":
+            if(!value) {
+                return {
+                    is_valid: false,
+                    message: "Token is empty"
+                }
+            }
 
-    if(!content || content.replace(' ', '').length == 0) {
-        return {
-            status: false,
-            message: "'content_text' length must be mroe than 0",
-        }
+            const token_result = await get_jwt_token(value)
+
+            if(!token_result.status) {
+                return {
+                    is_valid: false,
+                    message: `Incorrect token`,
+                }
+            }
+
+            let user = await get_user({ "_id": token_result.data })
+
+            if(!user.status) {
+                return {
+                    is_valid: false,
+                    message: `Incorrect token`,
+                }
+            }
+
+            if(!user.data.is_admin) {
+                return {
+                    is_valid: false,
+                    message: "This user doesn`t have permission to create a post",
+                }
+            }
+
+            return {
+                is_valid: true,
+                message: "Success",
+            }
+        case "post_id":
+            if(!value || value.replace(' ', '').length === 0) {
+                return {
+                    is_valid: false,
+                    message: "Post id is empty or not exists"
+                }
+            }
+
+            const posts = await get_posts(query = { "_id": value })
+
+            if(!posts.status) {
+                return {
+                    is_valid: false,
+                    message: "Incorrect post id"
+                }
+            }
+            
+            return {
+                is_valid: true,
+                message: "Success"
+            }
     }
 
     return {
-        status: true,
-        message: "Success",
+        is_valid: true,
+        message: "Success"
     }
 }
 
-async function create_post(token, title, featured_image, content_text) {
-    const token_result = await get_jwt_token(token)
+async function create_post(body, file) {
+    const token_result = await get_jwt_token(body.token)
+    
+   let  errors = {}
+    
+    for(let item of ['token', 'title', 'content_text']) {
+        const validation = await field_validation(item, body[item])
 
-    if(!token_result.status) {
-        return {
-            status: false,
-            message: `Incorrect 'token' - ${token_result.message}`,
-            data: null
+        if(!validation.is_valid) {
+            errors[item] = validation.message
         }
     }
-
-    let validation_result = post_validation(title, content_text)
-        
-    if(!validation_result.status) {
-        return {
-            status: false,
-            message: validation_result.message,
-            data: null
-        }
-    }
-
-    let user = await get_user({ "_id": token_result.data })
-
-    if(!user.status) {
-        return user
-    }
-
-    if(!user.data.is_admin) {
-        return {
-            status: false,
-            message: "This user doesn`t have permission to create a post",
-            data: null
-        }
-    }
-
-    const result = await upload_image(featured_image, "post_banner", Date.now())
+    const result = await upload_image(file, "featured_image", Date.now())
     const img = result.status ? result.data.url : null
     
+    if(!result.status && result.errors) {
+        errors.featured_image = result.errors
+    }
+
+    if(Object.keys(errors).length > 0) {
+        return {
+            status: false,
+            message: "Errors in your form",
+            errors: errors
+        }
+    }
+
     const newPost = new Post({
         author: token_result.data,
-        title: title,
+        title: body.title,
         featured_image: img,
-        content_text: content_text 
+        content_text: body.content_text 
     })
     
     await newPost.save()
@@ -102,7 +154,7 @@ async function get_posts(query = {}) {
             return {
                 status: true,
                 message: "There is no posts",
-                data: null
+                data: null,
             }
         }
         
@@ -112,7 +164,7 @@ async function get_posts(query = {}) {
         
         return {
             status: true,
-            message: "",
+            message: "Success",
             data: posts
         }
     }
@@ -127,6 +179,6 @@ async function get_posts(query = {}) {
 
 module.exports = {
     get_posts,
-    post_validation,
+    field_validation,
     create_post
 }

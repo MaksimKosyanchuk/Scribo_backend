@@ -1,6 +1,8 @@
 const AWS = require('aws-sdk');
 const path = require('path');
 
+const upload_limit_size = 5 * 1024 * 1024 
+
 AWS.config.update({
     accessKeyId: process.env.AWS_CONNECT_ACCESS_KEY, 
     secretAccessKey: process.env.AWS_CONNECT_SECRET_ACCESS_KEY,
@@ -12,29 +14,31 @@ const s3 = new AWS.S3();
 function aws_configure() {
     s3.listBuckets({}, (err, data) => {
         if (err) {
-            console.log("Ошибка при подключении к AWS:", err);
+            global.Logger.log("Ошибка при подключении к AWS:", err);
         }
         
         else {
-            console.log("Подключение к AWS успешно! Список бакетов: ", data.Buckets);
+            global.Logger.log("Подключение к AWS успешно! Список бакетов: ", data.Buckets);
         }
     });
 }
 
 function image_validation(img) {
+    errors = []
+
     const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
     const maxFileSize = 5 * 1024 * 1024;
 
     if (!allowedMimeTypes.includes(img.mimetype)) {
-        return { valid: false, error: 'Incorrect file type, only images!' };
+        errors.push('Incorrect file type, only images!');
     }
 
-    if (img.size > maxFileSize) {
-        return { valid: false, error: `Max size of image should be (${maxFileSize / 1024 / 1024} mb).` };
+    if (img.size > upload_limit_size) {
+        errors.push(`Max size of image should be (${maxFileSize / 1024 / 1024} mb).`);
     }
 
-    return { valid: true, error: null };
+    return errors
 }
 
 async function upload_image(avatar, type, file_name) {
@@ -47,21 +51,17 @@ async function upload_image(avatar, type, file_name) {
             }
         }
 
-        validation_result = image_validation(avatar)
-
-        if(!validation_result.valid) {
-            return {
-                status: false,
-                message: validation_result.error,
-                data: null
-            }
+        errors = image_validation(avatar)
+        
+        if((!type || type !== "avatar") && (!type || type !== "featured_image")) {
+            errors.push('Incorrect type, should be "avatar" or "featured_image"')
         }
 
-        if(type !== "avatar" && type !== "post_banner") {
+        if(errors.length > 0) {
             return {
                 status: false,
-                message: 'Incorrect type, should be "avatar" or "post_banner"',
-                data: type
+                message: "Some errors in your fields",
+                errors
             }
         }
 
@@ -80,7 +80,7 @@ async function upload_image(avatar, type, file_name) {
                     status: true,
                     message: "Successfully uploaded",
                     data: {
-                        url: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`
+                        url: `https://${process.env.AWS_CONNECT_BUCKET_NAME}.s3.${process.env.AWS_CONNECT_REGION}.amazonaws.com/${params.Key}`
                     }
                 }
             }

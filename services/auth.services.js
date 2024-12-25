@@ -34,7 +34,7 @@ async function get_jwt_token(token) {
         else {
             return {
                 status: false,
-                message: "Invalid 'token'",
+                message: "Invalid token",
                 data: null
             };
         }
@@ -48,40 +48,44 @@ async function get_jwt_token(token) {
     }
 }
 
-async function login(nick_name, password) {
-    const auth_result = auth_data_validation(nick_name, password)
+async function login(body) {
+    let errors = {}
 
-    if(!auth_result.status) {
-        return {
-            status: false,
-            message: auth_result.message,
-            data: null
+    for (let item of ['nick_name', 'password']) {
+        const validation = await field_validation(item, body[item])
+
+        if(!validation.is_valid) {
+            errors[item] = validation.message
         }
     }
 
-    const find_user = await get_user({ 'nick_name': nick_name }, { with_password: true })
+    const find_user = await get_user({ 'nick_name': body.nick_name }, { with_password: true })
+    
+    if(!errors.nick_name) {
+        if(!find_user.status) {
+            errors.nick_name = "Current user doesn`t exists"
+        } 
+    }
 
-    if(!find_user.status) {
-        return {
-            status: false,
-            message: "User doesn`t exists",
-            data: null
+    if(Object.keys(errors).length === 0) {
+        const is_match = await compare_passwords(body.password, find_user.data.password)
+
+        if(!is_match) {
+            errors.password = "Incorrect password"
         }
-    } 
+    }
 
-    const is_match = await compare_passwords(password, find_user.data.password)
-   
-    if(!is_match) {
+    if(Object.keys(errors).length > 0) {
         return {
             status: false,
-            message: "Incorrect 'password'",
-            data: null
+            message: "Errors in your form",
+            errors
         }
     }
 
     return {
         status: true,
-        message: auth_result.message,
+        message: "Authorized!",
         data: {
             user_id: find_user.data._id,
             token: await set_jwt_token(find_user.data._id)
@@ -89,82 +93,75 @@ async function login(nick_name, password) {
     }
 }
 
-function auth_data_validation(nick_name, password, description) {
-    if(!description) {
-        description = null
-    }
-
-    else {
-        if(description.length > 30) {
-            return {
-                status: false,
-                message: "Description must be less then 30",
-                data: {
-                    description: description
+async function field_validation(type, value) {
+    switch (type) {
+        case "description":
+            if(!value || value.length > 30) {
+                return {
+                    is_valid: false,
+                    message: "Description must be less then 30",
                 }
             }
-        }
-    }
-    
-    if(!nick_name || nick_name.length < 3 || nick_name.length > 20) {
-        return {
-            status: false,
-            message: "'nick_name' must be more then 2 and less then 21!",
-            data: {
-                nick_name: nick_name
+            break;
+        case "password":
+            if(!value || value.length < 8 || value.length > 20) {
+                return {
+                    is_valid: false,
+                    message: "Passowrd must be more then 7 and less then 21!",
+                }
             }
-        }
-    }
-    
-    if(!password || password.length < 8 || password.length > 20) {
-        return {
-            status: false,
-            message: "'passowrd' must be more then 7 and less then 21!",
-            data: {
-                password: password
+            break
+        case "nick_name":
+            if(!value || value.length < 3 || value.length > 20) {
+                return {
+                    is_valid: false,
+                    message: "Nick name must be more then 2 and less then 21!",
+                }
             }
-        }
     }
 
     return {
-        status: true,
-        message: "",
-        data: {
-            nick_name: nick_name,
-            password: password,
-            description: description
-        }
+        is_valid: true,
+        message: "Valide"
     }
 }
 
-async function register(nick_name, password, description, avatar) {
-    let auth = auth_data_validation(nick_name, password, description)
+async function register(body, avatar) {
+    let errors = {}
 
-    if(!auth.status) {
-        return {
-            status: false,
-            message: auth.message,
-            data: auth.data
+    for(let item of ['nick_name', 'password']){
+        let validation = await field_validation(item, body[item])
+        if(!validation.is_valid) {
+            errors[item] = validation.message
         }
     }
 
-    let user = await get_user({ "nick_name": nick_name })
+    const user = await get_user({ "nick_name": body.nick_name })
 
     if (user.status) {
-        return {
-            status: false,
-            message: "Current login is exists",
-            data: auth.data
-        }
+        errors.nick_name = "Current login is exists"
     }
 
-    const result = await upload_image(avatar, "avatar", nick_name)
+    const result = await upload_image(avatar, "avatar", body.nick_name)
+
+    if(!result.status && result.errors) {
+        errors.avatar = result.errors
+    }
+
+    if(Object.keys(errors).length > 0) {
+        return {
+            status: false,
+            message: "Errors in your form",
+            errors
+        }
+    }
+    
     const img = result.status ? result.data.url : null
 
     const newUser = new User({
-        nick_name: nick_name,
-        password: await set_password_hash(password),
-        description: auth.data.description,
+        nick_name: body.nick_name,
+        password: await set_password_hash(body.password),
+        description: body.description,
         avatar: img
     })
     
@@ -176,7 +173,7 @@ async function register(nick_name, password, description, avatar) {
             "User": "Registrated",
             "Avatar": {
                 "Status": result.status,
-                "Messsage": result.message
+                "Messsage": result.message,
             }             
         },
         data: newUser

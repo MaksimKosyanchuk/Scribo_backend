@@ -1,36 +1,23 @@
 const { get_jwt_token } = require('./auth.services')
 const { get_user } = require('./users.services')
-const { get_posts } = require('./posts.services')
+const { get_posts, field_validation } = require('./posts.services')
 const User = require('../models/User')
 
-async function get_profile(token) {
-    if(!token) {
+async function get_profile(body) {
+    const result = await field_validation("token", body.token)
+
+    if(!result.is_valid) {
         return {
             status: false,
-            message: "'token' is null",
-            data: null
+            message: "Some errors in your fields",
+            errors: {
+                "token": result.message
+            }
         }
     }
 
-    const token_result = await get_jwt_token(token)
-
-    if(!token_result.status) {
-        return {
-            status: false,
-            message: `Incorrect 'token' - ${token}`,
-            data: null
-        }
-    }
-
-    let user = await get_user({ '_id': token_result.data }, { with_saved_posts: true })
-    
-    if(!user) {
-        return {
-            status: false,
-            message: "User not found",
-            data: null
-        }
-    }
+    const token_result = await get_jwt_token(body.token)
+    const user = await get_user({ '_id': token_result.data }, { with_saved_posts: true })
 
     return {
         status: true,
@@ -81,30 +68,31 @@ async function __unsave_post(user, post) {
     }
 }
 
-async function save_post(token, post_id) {
-    const user = await get_profile(token)
-
-    if(!user.status) {
-        return user
+async function save_post(body) {
+    const user = await get_profile(body)
+    
+    const validation = await field_validation("post_id", body.post_id)
+    
+    if(!validation.is_valid) {
+        if(!user.errors) {
+            user.errors = {}
+        }
+        user.errors.post_id = validation.message
     }
     
-    if(!post_id) {
-        return {
+    if(user.errors) {
+        return { 
             status: false,
-            message: "'post_id' is null",
-            data: null
+            message: "Some errors in your fields!",
+            errors: user.errors
         }
     }
-
-    const posts = await get_posts(query = { "_id": post_id })
-
-    if(!posts.status) {
-        return posts
-    }
+    
+    const posts = await get_posts(query = { "_id": body.post_id })
 
     const post = posts.data[0]
     const result = user.data.saved_posts.some(savedPost => savedPost.equals(post._id))  ? await __unsave_post(user.data, post) : await __save_post(user.data, post)
-
+    
     return result
 }
 
