@@ -8,6 +8,7 @@ const upload = multer({
 
 router.get('/', async (req, res) => {
     global.Logger.log(`get posts request from: ${req.ip}`)
+    
     try {
         const posts = await get_posts(req.query)
 
@@ -66,12 +67,13 @@ router.get('/:id', async (req, res) => {
 router.post('/create-post', upload.single('featured_image'), async (req, res) => {
     global.Logger.log(`get create-post request from: ${req.ip}`)
     try {
-        const result = await create_post(req.body.token, req.body.title, req.file, req.body.content_text)
+        const result = await create_post(req.body, req.file)
 
         const result_data = {
             status: result.status ? 'success' : 'error',
             message: result.message,
-            data: result.data
+            data: result.data,
+            errors: result.errors
         }
 
         global.Logger.log(`response to: ${req.ip}`, result_data)
@@ -79,6 +81,7 @@ router.post('/create-post', upload.single('featured_image'), async (req, res) =>
         res.status(200).json(result_data)
 
     } catch (e) {
+        console.log(e)
         const result_data = {
             status: "error",
             message: e.message,

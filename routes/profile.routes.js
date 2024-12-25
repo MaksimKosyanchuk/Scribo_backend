@@ -7,12 +7,13 @@ router.post('/', async (req, res) => {
     global.Logger.log(`get profile request from: ${req.ip}`)
     
     try {
-        const user = await get_profile(req.body.token)
+        const user = await get_profile(req.body)
         
         const result_data = {
             status: user.status ? 'success' : 'error',
             message: user.message,
-            data: user.data
+            data: user.data,
+            errors: user.errors
         }
 
         global.Logger.log(`response to: ${req.ip}`, result_data)
@@ -36,12 +37,13 @@ router.post('/save-post', async (req, res) => {
     global.Logger.log(`get save-post request from: ${req.ip}`)
 
     try {
-        const user = await save_post(req.body.token, req.body.post_id)
+        const user = await save_post(req.body)
         
         const result_data = {
             status: user.status ? 'success' : 'error',
             message: user.message,
-            data: user.data
+            data: user.data,
+            errors: user.errors
         }
 
         global.Logger.log(`response to: ${req.ip}`, result_data)
