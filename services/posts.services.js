@@ -37,20 +37,13 @@ async function field_validation(type, value) {
                     message: `Incorrect token`,
                 }
             }
-
+            
             let user = await get_user({ "_id": token_result.data })
 
             if(!user.status) {
                 return {
                     is_valid: false,
                     message: `Incorrect token`,
-                }
-            }
-
-            if(!user.data.is_admin) {
-                return {
-                    is_valid: false,
-                    message: "This user doesn`t have permission to create a post",
                 }
             }
 
@@ -90,15 +83,27 @@ async function field_validation(type, value) {
 async function create_post(body, file) {
     const token_result = await get_jwt_token(body.token)
     
-   let  errors = {}
-    
-    for(let item of ['token', 'title', 'content_text']) {
-        const validation = await field_validation(item, body[item])
+    let  errors = {}
+        
+        for(let item of ['token', 'title', 'content_text']) {
+            const validation = await field_validation(item, body[item])
 
-        if(!validation.is_valid) {
-            errors[item] = validation.message
+            if(!validation.is_valid) {
+                errors[item] = validation.message
+            }
+        }   
+
+    let user = await get_user({ "_id": token_result.data })
+
+    if(!user.data.is_admin) {
+        if (!errors.token) {
+            errors.token = [];
         }
+        errors.token.push(
+            { message: "This user doesn`t have permission to create a post" }
+        );
     }
+
     const result = await upload_image(file, "featured_image", Date.now())
     const img = result.status ? result.data.url : null
     
