@@ -1,5 +1,5 @@
 const { get_jwt_token } = require('./utils/jwt')
-const { get_user } = require('./users.services')
+const { get_users } = require('./users.services')
 const { field_validation } = require('./utils/validation')
 const { get_posts } = require('./posts.services')
 const User = require('../models/User')
@@ -19,12 +19,12 @@ async function get_profile(body, with_saved_posts=true) {
     }
 
     const token_result = await get_jwt_token(body.token)
-    const user = await get_user({ '_id': token_result.data }, { with_saved_posts: with_saved_posts })
+    const user = await get_users({ '_id': token_result.data }, { with_saved_posts: with_saved_posts })
     
     return {
         status: true,
         message: "",
-        data: user.data
+        data: user.data[0]
     }
 }
 

@@ -1,26 +1,34 @@
 const User = require('../models/User')
 
-async function get_user(query = {}, options = { with_password: false, with_saved_posts: false }) {
+async function get_users(query = {}, options = { with_password: false, with_saved_posts: false }) {
     try {
-        let user = await User.findOne(query)
-        
-        if(!user) {
+        if(Object.keys(query).length === 0) {
             return {
                 status: false,
-                message: 'User not found',
+                message: 'Incorrect query',
+                data: query
+            }
+        }
+        
+        let users = await User.find(query)
+
+        if(users.length === 0) {
+            return {
+                status: false,
+                message: 'Users not found',
                 data: null
             }
         }
 
-        user = user.toObject()
+        users = users.map(user => user.toObject());
 
-        if(!options.with_password) delete user.password
-        if(!options.with_saved_posts) delete user.saved_posts
+        if(!options.with_password) delete users.password
+        if(!options.with_saved_posts) delete users.saved_posts
 
         return {
             status: true,
             message: 'Success',
-            data: user
+            data: users
         }
     }
     catch(e) {
@@ -33,5 +41,5 @@ async function get_user(query = {}, options = { with_password: false, with_saved
 }
 
 module.exports = {
-    get_user
+    get_users
 }
