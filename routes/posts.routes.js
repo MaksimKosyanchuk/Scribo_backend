@@ -2,13 +2,12 @@ const { Router } = require('express')
 const { create_post, get_posts } = require('../services/posts.services')
 const router = Router()
 const multer = require('multer');
+
 const upload = multer({
     limits: { fieldSize: 25 * 1024 * 1024 }
   })
 
 router.get('/', async (req, res) => {
-    global.Logger.log(`get posts request from: ${req.ip}`)
-    
     try {
         const posts = await get_posts(req.query)
 
@@ -17,8 +16,6 @@ router.get('/', async (req, res) => {
             message: posts.message,
             data: posts.data
         }
-
-        global.Logger.log(`response to: ${req.ip}`, result_data)
 
         res.status(200).json(result_data)
     }
@@ -29,15 +26,13 @@ router.get('/', async (req, res) => {
             data: null
         }
 
-        global.Logger.log(`response to: ${req.ip}`, result_data)
+        global.Logger.log(`Get post exception`, { message: e.message })
 
         res.status(500).json(result_data)
     }
 })
 
 router.get('/:id', async (req, res) => {
-    global.Logger.log(`get posts/${req.params.id} request from: ${req.ip}`)
-
     try {
         const posts = await get_posts({ "_id": req.params.id })
         
@@ -46,8 +41,6 @@ router.get('/:id', async (req, res) => {
             message: posts.message,
             data: posts.data ? posts.data[0] : null
         }
-
-        global.Logger.log(`response to: ${req.ip}`, result_data)
 
         res.status(200).json(result_data)
     }
@@ -58,14 +51,13 @@ router.get('/:id', async (req, res) => {
             data: null
         }
 
-        global.Logger.log(`response to: ${req.ip}`, result_data)
+        global.Logger.log(`Get post exception`, { message: e.message })
 
         res.status(500).json(result_data)
     }
 })
 
 router.post('/create-post', upload.single('featured_image'), async (req, res) => {
-    global.Logger.log(`get create-post request from: ${req.ip}`)
     try {
         const result = await create_post(req.body, req.file)
 
@@ -76,7 +68,12 @@ router.post('/create-post', upload.single('featured_image'), async (req, res) =>
             errors: result.errors
         }
 
-        global.Logger.log(`response to: ${req.ip}`, result_data)
+        if(result.status) {
+            global.Logger.log(`Success created post`, result.data)
+        }
+        else{
+            global.Logger.log(`Failure creating post`, { data: result.data, errors: result.errors })
+        }
 
         res.status(200).json(result_data)
 
@@ -88,7 +85,7 @@ router.post('/create-post', upload.single('featured_image'), async (req, res) =>
             data: null
         }
 
-        global.Logger.log(`response to: ${req.ip}`, result_data)
+        global.Logger.log(`Create post exception`, { message: e.message })
 
         res.status(500).json(result_data)
     }

@@ -4,8 +4,6 @@ const { get_user } = require('../services/users.services')
 const router = Router()
 
 router.get('/:nick_name', async (req, res) => {
-    global.Logger.log(`get users/${req.params.nick_name} request from: ${req.ip}`)
-
     try{
         const user = await get_user({ 'nick_name': req.params.nick_name })
         
@@ -14,8 +12,6 @@ router.get('/:nick_name', async (req, res) => {
             message: user.message,
             data: user.data
         }
-        
-        global.Logger.log(`response to: ${req.ip}`, result_data)
         
         res.status(200).json(result_data)
     }
@@ -26,7 +22,7 @@ router.get('/:nick_name', async (req, res) => {
             data: null
         }
 
-        global.Logger.log(`response to: ${req.ip}`, result_data)
+        global.Logger.log(`Exception on get user`, { message : e.message })
 
         res.status(500).json(result_data)
     }
