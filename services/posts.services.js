@@ -1,5 +1,5 @@
 const Post = require('../models/Post')
-const { get_jwt_token } = require('./auth.services')
+const { get_jwt_token } = require('./utils/jwt')
 const { get_user } = require('./users.services')
 const { upload_image } = require("./upload.services")
 const { field_validation } = require("./utils/validation")
