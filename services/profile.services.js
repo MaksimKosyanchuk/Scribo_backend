@@ -1,7 +1,7 @@
 const { get_jwt_token } = require('./utils/jwt')
 const { get_user } = require('./users.services')
 const { field_validation } = require('./utils/validation')
-const { get_posts } = require('./posts.servicesosts')
+const { get_posts } = require('./posts.services')
 const User = require('../models/User')
 const mongoose = require('mongoose');
 
