@@ -15,7 +15,6 @@ router.options('/register', (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-    global.Logger.log(`login request from: ${req.ip}`)
     try {
         const result = await login(req.body) 
         
@@ -26,7 +25,12 @@ router.post('/login', async (req, res) => {
             errors: result.errors
         }
 
-        global.Logger.log(`response to: ${req.ip}`, result_data)
+        if(result.status) {
+            global.Logger.log(`'${ result.data.nick_name }': success logined from ${ req.ip }`, result.data)
+        }
+        else {   
+            global.Logger.log(`'${ result.data.nick_name }': wrong logined from ${ req.ip }`,  { data: result.data, errors: result.errors })
+        }
 
         res.status(200).json(result_data)
     }
@@ -37,14 +41,13 @@ router.post('/login', async (req, res) => {
             data: null
         }
 
-        global.Logger.log(`response to: ${req.ip}`, result_data, e)
+        global.Logger.log(`Login exception`, { message: e.message })
 
         res.status(500).json(result_data)
     }
 })
 
 router.post('/register', upload.single('avatar'), async (req, res) => {
-    global.Logger.log(`register request from: ${req.ip}`)
     try {
         const result = await register(req.body, req.file)
         
@@ -55,7 +58,12 @@ router.post('/register', upload.single('avatar'), async (req, res) => {
             data: result.data
         }
 
-        global.Logger.log(`response to: ${req.ip}`, result_data)
+        if(result.status) {
+            global.Logger.log(`'${ result.data.nick_name }': success register from ${ req.ip }`, result.data)
+        }
+        else {   
+            global.Logger.log(`'${ result.data.nick_name }': wrong logined from ${ req.ip }`, { data: result.data, errors: result.errors })
+        }
 
         res.status(200).json(result_data)
     }
@@ -66,7 +74,7 @@ router.post('/register', upload.single('avatar'), async (req, res) => {
             data: null
         }
 
-        global.Logger.log(`response to: ${req.ip}`, result_data)
+        global.Logger.log(`Register exception`, { message: e.message })
 
         res.status(500).json(result_data)
     }

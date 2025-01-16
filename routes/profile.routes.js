@@ -4,8 +4,6 @@ const { get_profile, save_post } = require('../services/profile.services')
 const router = Router();
 
 router.post('/', async (req, res) => {
-    global.Logger.log(`get profile request from: ${req.ip}`)
-    
     try {
         const user = await get_profile(req.body)
         
@@ -16,8 +14,6 @@ router.post('/', async (req, res) => {
             errors: user.errors
         }
 
-        global.Logger.log(`response to: ${req.ip}`, result_data)
-
         res.status(200).json(result_data)
     }
     catch(e) {
@@ -27,26 +23,29 @@ router.post('/', async (req, res) => {
             data: null
         }
 
-        global.Logger.log(`response to: ${req.ip}`, result_data)
+        global.Logger.log(`Get profile exception`, { message: e.message })
 
         res.status(500).json(result_data)
     }
 })
 
 router.post('/save-post', async (req, res) => {
-    global.Logger.log(`get save-post request from: ${req.ip}`)
-
     try {
-        const user = await save_post(req.body)
+        const result = await save_post(req.body)
         
         const result_data = {
-            status: user.status ? 'success' : 'error',
-            message: user.message,
-            data: user.data,
-            errors: user.errors
+            status: result.status ? 'success' : 'error',
+            message: result.message,
+            data: result.data,
+            errors: result.errors
         }
 
-        global.Logger.log(`response to: ${req.ip}`, result_data)
+        if(result.status) {
+            global.Logger.log(`${ result.message }`, result.data)
+        }
+        else {
+            global.Logger.log(`${ result.message }`, { data: result.data, errors: result.errors })
+        }
 
         res.status(200).json(result_data)
     }
@@ -57,7 +56,7 @@ router.post('/save-post', async (req, res) => {
             data: null
         }
 
-        global.Logger.log(`response to: ${req.ip}`, result_data)
+        global.Logger.log(`Exception on save post`, { message : e.message })
 
         res.status(500).json(result_data)
     }

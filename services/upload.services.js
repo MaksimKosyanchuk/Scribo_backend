@@ -14,11 +14,7 @@ const s3 = new AWS.S3();
 function aws_configure() {
     s3.listBuckets({}, (err, data) => {
         if (err) {
-            global.Logger.log("Ошибка при подключении к AWS:", err);
-        }
-        
-        else {
-            global.Logger.log("Подключение к AWS успешно! Список бакетов: ", data.Buckets);
+            global.Logger.log("Ошибка при подключении к AWS:", { message: err });
         }
     });
 }
