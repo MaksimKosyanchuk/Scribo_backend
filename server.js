@@ -32,8 +32,7 @@ const start = async () => {
         aws_configure()
         console.log("logger is initialized")
         await mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.lccalb5.mongodb.net/?retryWrites=true&w=majority`)
-        app.listen(port, () => global.Logger.log(`server started on port: ${port}`))
-        global.Logger.log("successfully connected to mongo db")
+        app.listen(port, () => {} )
     }
     catch (e) { 
         global.Logger.log(e.message)

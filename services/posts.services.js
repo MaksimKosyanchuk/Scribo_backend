@@ -1,98 +1,21 @@
 const Post = require('../models/Post')
 const { get_jwt_token } = require('./auth.services')
 const { get_user } = require('./users.services')
-const {upload_image} = require("./upload.services") 
-
-async function field_validation(type, value) {
-    switch(type){
-        case "title":
-            if(!value || value.replace(' ', '').length == 0) {
-                return {
-                    is_valid: false,
-                    message: "Title must not be empty",
-                }
-            }
-            break;
-        case "content_text":
-            if(!value || value.replace(' ', '').length == 0) {
-                return {
-                    stais_validtus: false,
-                    message: "Content length must be more than 0",
-                }
-            }
-            break;
-        case "token":
-            if(!value) {
-                return {
-                    is_valid: false,
-                    message: "Token is empty"
-                }
-            }
-
-            const token_result = await get_jwt_token(value)
-
-            if(!token_result.status) {
-                return {
-                    is_valid: false,
-                    message: `Incorrect token`,
-                }
-            }
-            
-            let user = await get_user({ "_id": token_result.data })
-
-            if(!user.status) {
-                return {
-                    is_valid: false,
-                    message: `Incorrect token`,
-                }
-            }
-
-            return {
-                is_valid: true,
-                message: "Success",
-            }
-        case "post_id":
-            if(!value || value.replace(' ', '').length === 0) {
-                return {
-                    is_valid: false,
-                    message: "Post id is empty or not exists"
-                }
-            }
-
-            const posts = await get_posts(query = { "_id": value })
-
-            if(!posts.status) {
-                return {
-                    is_valid: false,
-                    message: "Incorrect post id"
-                }
-            }
-            
-            return {
-                is_valid: true,
-                message: "Success"
-            }
-    }
-
-    return {
-        is_valid: true,
-        message: "Success"
-    }
-}
+const { upload_image } = require("./upload.services")
+const { field_validation } = require("./utils/validation")
 
 async function create_post(body, file) {
-    const token_result = await get_jwt_token(body.token)
-    
     let  errors = {}
+    
+    for(let item of ['token', 'title', 'content_text']) {
+        const validation = await field_validation(item, body[item])
         
-        for(let item of ['token', 'title', 'content_text']) {
-            const validation = await field_validation(item, body[item])
-
-            if(!validation.is_valid) {
-                errors[item] = validation.message
-            }
-        }   
-
+        if(!validation.is_valid) {
+            errors[item] = validation.message
+        }
+    }
+    
+    const token_result = await get_jwt_token(body.token)
     let user = await get_user({ "_id": token_result.data })
 
     if(!user.data.is_admin) {
@@ -137,7 +60,7 @@ async function create_post(body, file) {
                 "Message": result.message
             }
         },
-        data: newPost
+        data: { user: user, post: newPost }
     }
 }
 

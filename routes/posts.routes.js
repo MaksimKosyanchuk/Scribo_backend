@@ -69,10 +69,7 @@ router.post('/create-post', upload.single('featured_image'), async (req, res) =>
         }
 
         if(result.status) {
-            global.Logger.log(`Success created post`, result.data)
-        }
-        else{
-            global.Logger.log(`Failure creating post`, { data: result.data, errors: result.errors })
+            global.Logger.log(`User ${ result_data.data.user.nick_name } created post`, result.data)
         }
 
         res.status(200).json(result_data)

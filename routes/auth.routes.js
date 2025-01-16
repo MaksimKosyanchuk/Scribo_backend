@@ -26,10 +26,7 @@ router.post('/login', async (req, res) => {
         }
 
         if(result.status) {
-            global.Logger.log(`'${ result.data.nick_name }': success logined from ${ req.ip }`, result.data)
-        }
-        else {   
-            global.Logger.log(`'${ result.data.nick_name }': wrong logined from ${ req.ip }`,  { data: result.data, errors: result.errors })
+            global.Logger.log(`User '${ result.data.user.nick_name }': success logined from ${ req.ip }`, result.data)
         }
 
         res.status(200).json(result_data)
@@ -59,10 +56,7 @@ router.post('/register', upload.single('avatar'), async (req, res) => {
         }
 
         if(result.status) {
-            global.Logger.log(`'${ result.data.nick_name }': success register from ${ req.ip }`, result.data)
-        }
-        else {   
-            global.Logger.log(`'${ result.data.nick_name }': wrong logined from ${ req.ip }`, { data: result.data, errors: result.errors })
+            global.Logger.log(`User '${ result.data.nick_name }' success register from ${ req.ip }`, result.data)
         }
 
         res.status(200).json(result_data)

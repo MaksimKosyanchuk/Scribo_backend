@@ -1,5 +1,5 @@
 const { Router } = require('express')
-const { get_profile, save_post } = require('../services/profile.services')
+const { get_profile, save_post, follow, unfollow } = require('../services/profile.services')
 
 const router = Router();
 
@@ -41,10 +41,7 @@ router.post('/save-post', async (req, res) => {
         }
 
         if(result.status) {
-            global.Logger.log(`${ result.message }`, result.data)
-        }
-        else {
-            global.Logger.log(`${ result.message }`, { data: result.data, errors: result.errors })
+            global.Logger.log(`User ${ result.data.user.nick_name } saved post`, result.data)
         }
 
         res.status(200).json(result_data)
@@ -61,5 +58,66 @@ router.post('/save-post', async (req, res) => {
         res.status(500).json(result_data)
     }
 })
+
+router.post('/follow', async (req, res) => {
+    try {
+        const result = await follow(req.body)
+        
+        const result_data = {
+            status: result.status ? 'success' : 'error',
+            message: result.message,
+            data: result.data,
+            errors: result.errors
+        }
+
+        if(result.status) {
+            global.Logger.log(`User ${ result.data.follower.nick_name } followed ${result.data.followed.nick_name }`, result.data)
+        }
+
+        res.status(200).json(result_data)
+    }
+    catch(e) {
+        const result_data = {
+            status: "error",
+            message: e.message,
+            data: null
+        }
+
+        global.Logger.log(`Exception on follow`, { message : e.message })
+
+        res.status(500).json(result_data)
+    }
+})
+
+router.post('/unfollow', async (req, res) => {
+    try {
+        const result = await unfollow(req.body)
+        
+        const result_data = {
+            status: result.status ? 'success' : 'error',
+            message: result.message,
+            data: result.data,
+            errors: result.errors
+        }
+
+        if(result.status) {
+            global.Logger.log(`User ${ result.data.follower.nick_name } unfollowed ${result.data.followed.nick_name }`, result.data)
+        }
+
+        res.status(200).json(result_data)
+    }
+    catch(e) {
+        const result_data = {
+            status: "error",
+            message: e.message,
+            data: null
+        }
+
+        global.Logger.log(`Exception on follow`, { message : e.message })
+
+        res.status(500).json(result_data)
+    }
+})
+
 
 module.exports = router;

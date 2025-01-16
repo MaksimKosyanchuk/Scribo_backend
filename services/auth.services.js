@@ -1,51 +1,12 @@
 const bcrypt = require("bcryptjs")
-const jwt = require("jsonwebtoken")
 const User = require("../models/User")
 const { get_user } = require("./users.services")
 const { upload_image } = require("./upload.services")
+const { field_validation } = require("./utils/validation")
+const { set_jwt_token } = require("./utils/jwt")
 
 async function compare_passwords(password, from_db) {    
     return await bcrypt.compare(password, from_db)
-}
-
-async function set_jwt_token(user_id) {
-    const key = process.env.JWTKEY
-
-    return jwt.sign(
-        { user_id: user_id },
-        key,
-        {}
-    )
-}
-
-async function get_jwt_token(token) {
-    const key = process.env.JWTKEY
-    try {
-        const decoded = await jwt.verify(token, key);
-        
-        if (decoded && decoded.user_id) {
-            return {
-                status: true,
-                message: "",
-                data: decoded.user_id
-            };
-        }
-
-        else {
-            return {
-                status: false,
-                message: "Invalid token",
-                data: null
-            };
-        }
-    }
-    catch (err) {
-        return {
-            status: false,
-            message: err.message,
-            data: null
-        };
-    }
 }
 
 async function login(body) {
@@ -87,42 +48,9 @@ async function login(body) {
         status: true,
         message: "Authorized!",
         data: {
-            user_id: find_user.data._id,
+            user: find_user.data,
             token: await set_jwt_token(find_user.data._id)
         }
-    }
-}
-
-async function field_validation(type, value) {
-    switch (type) {
-        case "description":
-            if(!value || value.length > 30) {
-                return {
-                    is_valid: false,
-                    message: "Description must be less then 30",
-                }
-            }
-            break;
-        case "password":
-            if(!value || value.length < 8 || value.length > 20) {
-                return {
-                    is_valid: false,
-                    message: "Passowrd must be more then 7 and less then 21!",
-                }
-            }
-            break
-        case "nick_name":
-            if(!value || value.length < 3 || value.length > 20) {
-                return {
-                    is_valid: false,
-                    message: "Nick name must be more then 2 and less then 21!",
-                }
-            }
-    }
-
-    return {
-        is_valid: true,
-        message: "Valide"
     }
 }
 
@@ -188,7 +116,5 @@ async function set_password_hash(password) {
 module.exports = {
     login,
     register,
-    get_jwt_token,
     compare_passwords,
-    set_jwt_token
 }
