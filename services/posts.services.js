@@ -107,6 +107,5 @@ async function get_posts(query = {}) {
 
 module.exports = {
     get_posts,
-    field_validation,
     create_post
 }

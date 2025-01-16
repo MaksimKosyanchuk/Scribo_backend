@@ -1,3 +1,4 @@
+const Post = require('../../models/Post')
 const { get_jwt_token } = require('./jwt')
 const { get_user } = require('../users.services')
 
@@ -14,7 +15,7 @@ async function field_validation(type, value) {
         case "content_text":
             if(!value || value.replace(' ', '').length == 0) {
                 return {
-                    stais_validtus: false,
+                    is_valid: false,
                     message: "Content length must be more than 0",
                 }
             }
@@ -56,10 +57,17 @@ async function field_validation(type, value) {
                     message: "Post id is empty or not exists"
                 }
             }
-
-            const posts = await get_posts(query = { "_id": value })
-
-            if(!posts.status) {
+            try{
+                const posts = await Post.find({ _id: value })
+                
+                if(!posts) {
+                    return {
+                        is_valid: false,
+                        message: "Incorrect post id"
+                    }
+                }
+            }
+            catch(e) {
                 return {
                     is_valid: false,
                     message: "Incorrect post id"

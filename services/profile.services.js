@@ -89,7 +89,7 @@ async function save_post(body) {
             errors: user.errors
         }
     }
-    
+
     const posts = await get_posts(query = { "_id": body.post_id })
 
     const post = posts.data[0]
