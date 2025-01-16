@@ -1,6 +1,6 @@
 const Post = require('../models/Post')
 const { get_jwt_token } = require('./utils/jwt')
-const { get_user } = require('./users.services')
+const { get_users } = require('./users.services')
 const { upload_image } = require("./upload.services")
 const { field_validation } = require("./utils/validation")
 
@@ -16,9 +16,9 @@ async function create_post(body, file) {
     }
     
     const token_result = await get_jwt_token(body.token)
-    let user = await get_user({ "_id": token_result.data })
+    let user = await get_users({ "_id": token_result.data })
 
-    if(!user.data.is_admin) {
+    if(!user.status || !user.data[0].is_admin) {
         if (!errors.token) {
             errors.token = [];
         }
@@ -67,9 +67,9 @@ async function create_post(body, file) {
 async function insert_author_to_post(post) {
     post = post.toObject()
     
-    let author = await get_user({ '_id': post.author })
+    let author = await get_users({ '_id': post.author })
 
-    post.author = author.status ? author.data : null 
+    post.author = author.status ? author.data[0] : null 
 
     return post
 }

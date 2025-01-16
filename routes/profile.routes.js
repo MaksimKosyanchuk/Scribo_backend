@@ -1,12 +1,16 @@
 const { Router } = require('express')
 const { get_profile, save_post, follow, unfollow } = require('../services/profile.services')
-
 const router = Router();
+const multer = require('multer');
+
+const upload = multer({
+    limits: { fieldSize: 25 * 1024 * 1024 }
+  })
 
 router.post('/', async (req, res) => {
     try {
         const user = await get_profile(req.body)
-        
+
         const result_data = {
             status: user.status ? 'success' : 'error',
             message: user.message,
@@ -59,10 +63,10 @@ router.post('/save-post', async (req, res) => {
     }
 })
 
-router.post('/follow', async (req, res) => {
+router.post('/follow', upload.none(), async (req, res) => {
     try {
         const result = await follow(req.body)
-        
+
         const result_data = {
             status: result.status ? 'success' : 'error',
             message: result.message,
@@ -89,7 +93,7 @@ router.post('/follow', async (req, res) => {
     }
 })
 
-router.post('/unfollow', async (req, res) => {
+router.post('/unfollow', upload.none(), async (req, res) => {
     try {
         const result = await unfollow(req.body)
         

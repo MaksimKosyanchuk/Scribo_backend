@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs")
 const User = require("../models/User")
-const { get_user } = require("./users.services")
+const { get_users } = require("./users.services")
 const { upload_image } = require("./upload.services")
 const { field_validation } = require("./utils/validation")
 const { set_jwt_token } = require("./utils/jwt")
@@ -20,12 +20,15 @@ async function login(body) {
         }
     }
 
-    const find_user = await get_user({ 'nick_name': body.nick_name }, { with_password: true })
+    let find_user = await get_users({ 'nick_name': body.nick_name }, { with_password: true })
     
     if(!errors.nick_name) {
         if(!find_user.status) {
             errors.nick_name = "Current user doesn`t exists"
-        } 
+        }
+        else {
+            find_user.data = find_user.data[0]
+        }
     }
 
     if(Object.keys(errors).length === 0) {
@@ -64,7 +67,7 @@ async function register(body, avatar) {
         }
     }
 
-    const user = await get_user({ "nick_name": body.nick_name })
+    const user = await get_users({ "nick_name": body.nick_name })
 
     if (user.status) {
         errors.nick_name = "Current login is exists"

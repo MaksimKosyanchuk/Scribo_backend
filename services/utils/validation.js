@@ -1,6 +1,6 @@
 const Post = require('../../models/Post')
 const { get_jwt_token } = require('./jwt')
-const { get_user } = require('../users.services')
+const { get_users } = require('../users.services')
 
 async function field_validation(type, value) {
     switch(type){
@@ -37,7 +37,7 @@ async function field_validation(type, value) {
                     }
                 }
                 
-                let user = await get_user({ "_id": token_result.data })
+                let user = await get_users({ "_id": token_result.data })
                 
                 if(!user.status) {
                     return {
