@@ -17,7 +17,6 @@ router.options('/register', (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const result = await login(req.body) 
-        console.log(result)
         
         const result_data = {
             status: result.status ? 'success' : 'error',
