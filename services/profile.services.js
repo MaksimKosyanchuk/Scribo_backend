@@ -271,7 +271,7 @@ async function unfollow(body) {
             { $pull: { follows: followed_user._id }});
 
         profile.data.follows = profile.data.follows.filter(item => !item._id.equals(followed_user._id));
-        followed_user.followers= followed_user.follows.filter(item => !item._id.equals(profile.data._id));
+        followed_user.followers = followed_user.followers.filter(item => !item._id.equals(profile.data._id));
 
         return {
             status: true,
