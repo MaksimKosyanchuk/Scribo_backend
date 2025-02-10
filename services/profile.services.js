@@ -172,11 +172,25 @@ async function follow(body) {
     try {
         await User.findOneAndUpdate(
             { _id: followed_user._id },
-            { $push: { followers: profile.data._id }});
+            {
+                $push: {
+                    followers: profile.data._id,
+                    notifications: {
+                        type: "follow",
+                        user: profile.data._id
+                    }
+                }
+            }
+        );
         
         await User.findOneAndUpdate(
             { _id: profile.data._id },
-            { $push: { follows: followed_user._id }});
+            {
+                $push: {
+                    follows: followed_user._id
+                }
+            }
+        );
 
         profile.data.follows.push(followed_user._id)
         followed_user.followers.push(profile.data._id)
@@ -264,7 +278,18 @@ async function unfollow(body) {
     try {
         await User.findOneAndUpdate(
             { _id: followed_user._id },
-            { $pull: { followers: profile.data._id }});
+            {
+                $pull: {
+                    followers: profile.data._id
+                },
+                $push: {
+                    notifications: {
+                        type: "unfollow",
+                        user: profile.data._id
+                    }
+                }
+            }
+        );
 
         await User.findOneAndUpdate(
             { _id: profile.data._id },
@@ -287,9 +312,50 @@ async function unfollow(body) {
     }
 }
 
+async function read_notifications(body) {
+    try{
+        const user = await get_profile(body)
+        if(!user.status) {
+            return {
+                status: false,
+                message: "Failed to read notifications",
+                errors: user.errors
+            };
+        }
+
+        await User.findOneAndUpdate(
+            { _id: user.data._id },
+            {
+                $set: {
+                    'notifications.$[].is_read': true
+                }
+            }
+        );
+
+        return {
+            status: true,
+            message: "Success readed all notifications",
+            data: {
+                ...user.data,
+                notifications: user.data.notifications.map((item) => {
+                    return { ...item, is_read: true };
+                })
+            }
+        }
+    }
+    catch(error) {
+        return {
+            status: false,
+            message: "Failed to read notifications",
+            data: { message: error.message }
+        };
+    }        
+}
+
 module.exports = {
     get_profile,
     save_post, 
     follow,
-    unfollow
+    unfollow,
+    read_notifications
 }
