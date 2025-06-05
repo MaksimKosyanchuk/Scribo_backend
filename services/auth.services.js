@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs")
 const User = require("../models/User")
 const { get_users } = require("./users.services")
-const { upload_image } = require("./upload.services")
+const { upload_image } = require("./aws.services")
 const { field_validation } = require("./utils/validation")
 const { set_jwt_token } = require("./utils/jwt")
 

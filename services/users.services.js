@@ -1,6 +1,6 @@
 const User = require('../models/User')
 
-async function get_users(query = {}, options = { with_password: false, with_saved_posts: false }) {
+async function get_users(query = {}, options = { with_password: false, with_saved_posts: false, with_notifications: false }) {
     try {
         let users = await User.find(query)
 
@@ -12,10 +12,23 @@ async function get_users(query = {}, options = { with_password: false, with_save
             }
         }
 
-        users = users.map(user => user.toObject());
+        users = users.map(user => {
+            const userObj = user.toObject();
 
-        if(!options.with_password) delete users.password
-        if(!options.with_saved_posts) delete users.saved_posts
+            if (!options.with_password) {
+                delete userObj.password;
+            }
+
+            if (!options.with_saved_posts) {
+                delete userObj.saved_posts;
+            }
+
+            if (!options.with_notifications) {
+                delete userObj.notifications;
+            }
+
+            return userObj;
+        })
 
         return {
             status: true,

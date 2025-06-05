@@ -1,7 +1,7 @@
 const Post = require('../models/Post')
 const { get_jwt_token } = require('./utils/jwt')
 const { get_users } = require('./users.services')
-const { upload_image } = require("./upload.services")
+const { upload_image, delete_image } = require("./aws.services")
 const { field_validation } = require("./utils/validation")
 
 async function create_post(body, file) {
@@ -64,7 +64,7 @@ async function create_post(body, file) {
     }
 }
 
-async function insert_author_to_post(post) {
+async function _insert_author_to_post(post) {
     post = post.toObject()
     
     let author = await get_users({ '_id': post.author })
@@ -87,7 +87,7 @@ async function get_posts(query = {}) {
         }
         
         for (let i = 0; i < posts.length; i++) {
-            posts[i] = await insert_author_to_post(posts[i])
+            posts[i] = await _insert_author_to_post(posts[i])
         }
         
         return {
@@ -105,7 +105,61 @@ async function get_posts(query = {}) {
     }
 }
 
+async function delete_post(headers, params) {
+    errors = {  
+        headers: [],
+        body: [],
+        params: []
+    }
+
+    const authHeader = headers.authorization;
+
+    const user = await field_validation("token", authHeader.split(' ')[1])
+
+    if(!user.is_valid) {
+        errors.headers.push({ Authorization: { message: user.message, data: user.data }})
+    }
+    else {
+        if(!user.data.is_admin) {
+            errors.headers.push({ Authorization: { message: "This user doesn`t has permission to delete post", data: user.data }})
+        }
+    }
+    
+    const post = await field_validation("post_id", params.id)
+    
+    if(!post.is_valid) {
+        errors.params.push({ "/": { message: post.message, data: post.data }})
+    }
+
+    if (errors.headers.length > 0 || errors.body.length > 0 || errors.params.length > 0) {
+        return {
+            status: false,
+            message: "Some errors in your fields",
+            data: [],
+            errors: errors
+        }
+    }
+
+    try { 
+        if(post.data.featured_image) {
+            const delete_image_result = await delete_image(post.data.featured_image)
+        }
+        await Post.findByIdAndDelete(post.data._id);
+    }
+    catch(e) {
+        console.log(e.message)
+    }
+    
+    return {
+        status: true,
+        message: "Succes deleted post",
+        data: { user: user.data, post: post.data },
+        errors: errors
+    }
+}
+
 module.exports = {
     get_posts,
-    create_post
+    create_post,
+    delete_post
 }

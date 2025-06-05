@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const path = require('path');
+const url = require('url');
 
 const UPLOAD_LIMIT_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
@@ -56,9 +57,9 @@ async function upload_image(file, type, file_name) {
 
     if (errors.length > 0) {
         return {
-        status: false,
-        message: "Validation errors",
-        errors,
+            status: false,
+            message: "Validation errors",
+            errors,
         };
     }
 
@@ -67,10 +68,10 @@ async function upload_image(file, type, file_name) {
 
     try {
         const params = {
-        Bucket: process.env.AWS_CONNECT_BUCKET_NAME,
-        Key: key,
-        Body: file.buffer,
-        ContentType: file.mimetype,
+            Bucket: process.env.AWS_CONNECT_BUCKET_NAME,
+            Key: key,
+            Body: file.buffer,
+            ContentType: file.mimetype,
         };
 
         const result = await s3.putObject(params).promise();
@@ -101,8 +102,29 @@ async function upload_image(file, type, file_name) {
     }
 }
 
+async function delete_image(url_file) {
+    try {
+        const parsedUrl = url.parse(url_file);
+        const key = decodeURIComponent(parsedUrl.pathname).slice(1);
+        
+        const params = {
+            Bucket: process.env.AWS_CONNECT_BUCKET_NAME,
+            Key: key
+        }
+
+        await s3.deleteObject(params).promise();
+
+        return true;
+
+    } catch (error) {
+        console.error('Ошибка при удалении файла из S3:', error);
+        return false;
+    }
+}
+
 module.exports = {
     upload_image,
     aws_configure,
+    delete_image,
     s3,
 };

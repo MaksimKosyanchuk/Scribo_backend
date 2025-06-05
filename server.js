@@ -4,7 +4,7 @@ const mongoose = require('mongoose')
 const app = express()
 require('dotenv').config()
 const Logger = require('./services/log')
-const { aws_configure } = require('./services/upload.services')
+const { aws_configure } = require('./services/aws.services')
 
 const port = process.env.PORT
 
@@ -16,7 +16,6 @@ const corsOptions = {
     optionsSuccessStatus: 200,
 };
 
-console.log(corsOptions)
 app.use(cors(corsOptions))
 app.use(express.json({ extended: true }))
 

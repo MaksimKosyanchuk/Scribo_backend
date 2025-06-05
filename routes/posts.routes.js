@@ -1,5 +1,5 @@
 const { Router } = require('express')
-const { create_post, get_posts } = require('../services/posts.services')
+const { create_post, get_posts, delete_post } = require('../services/posts.services')
 const router = Router()
 const multer = require('multer');
 
@@ -83,6 +83,37 @@ router.post('/create-post', upload.single('featured_image'), async (req, res) =>
         }
 
         global.Logger.log(`Create post exception`, { message: e.message })
+
+        res.status(500).json(result_data)
+    }
+})
+
+router.delete('/delete-post/:id', async (req, res) => {
+    try {
+        const result = await delete_post(req.headers, req.params)
+
+        const result_data = {
+            status: result.status ? 'success' : 'error',
+            message: result.message,
+            data: result.data,
+            errors: result.errors
+        }
+
+        if(result.status) {
+            global.Logger.log(`User ${ result_data.data.user.nick_name } deleted post`, result.data)
+        }
+
+        res.status(200).json(result)
+
+    } catch (e) {
+        console.log(e)
+        const result_data = {
+            status: "error",
+            message: e.message,
+            data: null
+        }
+
+        global.Logger.log(`Delete post exception`, { message: e.message })
 
         res.status(500).json(result_data)
     }
