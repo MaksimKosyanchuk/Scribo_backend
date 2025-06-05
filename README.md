@@ -43,7 +43,7 @@ npm run start
 |/users/`nick_name`|GET|||{<br>&nbsp;&nbsp;&nbsp;&nbsp;"_id": `_id`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"nick_name": `nick_name`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"avatar": `avatar`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"created_date": `created_date`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"is_admin": `is_admin`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"is_verified": `is_verified`<br>}|
 
 ## Links
-- [Set request](https://news-site-backend-rust.vercel.app/)
+- [Set request](https://scribo-backend.vercel.app/)
 
 ---
 
