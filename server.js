@@ -5,6 +5,7 @@ const app = express()
 require('dotenv').config()
 const Logger = require('./services/log')
 const { aws_configure } = require('./services/upload.services')
+const {cleanupUnusedS3Files} = require('./services/utils/fix_files_tool')
 
 const port = process.env.PORT
 
