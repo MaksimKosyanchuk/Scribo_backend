@@ -2,14 +2,6 @@ const User = require('../models/User')
 
 async function get_users(query = {}, options = { with_password: false, with_saved_posts: false }) {
     try {
-        if(Object.keys(query).length === 0) {
-            return {
-                status: false,
-                message: 'Incorrect query',
-                data: query
-            }
-        }
-        
         let users = await User.find(query)
 
         if(users.length === 0) {

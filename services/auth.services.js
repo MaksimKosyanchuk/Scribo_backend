@@ -111,7 +111,6 @@ async function register(body, avatar) {
     }
 }
 
-
 async function set_password_hash(password) {
     return bcrypt.hashSync(password, process.env.PSSWORD_SALT)
 }
