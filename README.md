@@ -1,11 +1,11 @@
-# Server for news site
+# Server for posts blog site
 
-Api server for news site, working with MongoDB
+Api server for blog site, working with MongoDB
 
 ## Install and run
 ### Clone repository 
 ```bash
-git clone https://github.com/your-username/your-repo.git
+git clone https://github.com/MaksimKosyanchuk/Scribo_backend
 ```
 ### Install requirements
 ```bash
@@ -19,7 +19,11 @@ Rename ***.env.sample*** to ***.env*** and set
 `DB_NAME`
 `JWTKEY`
 `PASSWORD_SALT`
-`PORT` 
+`PORT`
+`AWS_CONNECT_ACCESS_KEY`
+`AWS_CONNECT_SECRET_ACCESS_KEY`
+`AWS_CONNECT_REGION`
+`AWS_CONNECT_BUCKET_NAME` 
 variables
 ### Run server
 ```bash
