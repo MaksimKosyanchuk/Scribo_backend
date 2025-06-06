@@ -103,7 +103,7 @@ router.delete('/delete-post/:id', async (req, res) => {
             global.Logger.log(`User ${ result_data.data.user.nick_name } deleted post`, result.data)
         }
 
-        res.status(200).json(result)
+        res.status(200).json(result_data)
 
     } catch (e) {
         console.log(e)

@@ -76,7 +76,7 @@ async function _insert_author_to_post(post) {
 
 async function get_posts(query = {}) {
     try {
-        let posts = await Post.find( query )
+        let posts = await Post.find(query)
         
         if (!posts.length) {
             return {
@@ -147,7 +147,7 @@ async function delete_post(headers, params) {
         await Post.findByIdAndDelete(post.data._id);
     }
     catch(e) {
-        console.log(e.message)
+        global.Logger.log(`Delete post exception`, { message: e.message })
     }
     
     return {
