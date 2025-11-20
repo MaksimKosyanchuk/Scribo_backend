@@ -6,17 +6,17 @@ const User = require('../models/User')
 const mongoose = require('mongoose');
 
 async function get_profile(body, with_saved_posts=true) {
-    const result = await field_validation("token", body.token)
+    // const result = await field_validation("token", body.token)
 
-    if(!result.is_valid) {
-        return {
-            status: false,
-            message: "Some errors in your fields",
-            errors: {
-                "token": result.message
-            }
-        }
-    }
+    // if(!result.is_valid) {
+    //     return {
+    //         status: false,
+    //         message: "Some errors in your fields",
+    //         errors: {
+    //             "token": result.message
+    //         }
+    //     }
+    // }
 
     const token_result = await get_jwt_token(body.token)
     const user = await get_users({ '_id': token_result.data }, { with_saved_posts: with_saved_posts })

@@ -12,13 +12,13 @@ async function compare_passwords(password, from_db) {
 async function login(body) {
     let errors = {}
 
-    for (let item of ['nick_name', 'password']) {
-        const validation = await field_validation(item, body[item])
+    // for (let item of ['nick_name', 'password']) {
+    //     const validation = await field_validation(item, body[item])
 
-        if(!validation.is_valid) {
-            errors[item] = validation.message
-        }
-    }
+    //     if(!validation.is_valid) {
+    //         errors[item] = validation.message
+    //     }
+    // }
 
     let find_user = await get_users({ 'nick_name': body.nick_name }, { with_password: true })
     

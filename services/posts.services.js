@@ -4,49 +4,52 @@ const { get_users } = require('./users.services')
 const { upload_image, delete_image } = require("./aws.services")
 const { field_validation } = require("./utils/validation")
 
-async function create_post(body, file) {
-    let  errors = {}
-    
-    for(let item of ['token', 'title', 'content_text']) {
-        const validation = await field_validation(item, body[item])
-        
-        if(!validation.is_valid) {
-            errors[item] = validation.message
+async function create_post(req) {
+    validation_result = await field_validation([
+        {
+            type: "token",
+            source: "headers",
+            value: req.headers.authorization
+        },
+        {
+            type: "title",
+            source: "body",
+            value: req.body.title
+        },
+        {
+            type: "content_text",
+            source: "body",
+            value: req.body.content_text
         }
-    }
-    
-    const token_result = await get_jwt_token(body.token)
-    let user = await get_users({ "_id": token_result.data })
+    ])
 
-    if(!user.status || !user.data[0].is_admin) {
-        if (!errors.token) {
-            errors.token = [];
-        }
-        errors.token.push(
-            { message: "This user doesn`t have permission to create a post" }
-        );
-    }
-
-    const result = await upload_image(file, "featured_image", Date.now())
-    const img = result.status ? result.data.url : null
-    
-    if(!result.status && result.errors) {
-        errors.featured_image = result.errors
-    }
-
-    if(Object.keys(errors).length > 0) {
+    if(!validation_result.status) {
         return {
             status: false,
-            message: "Errors in your form",
+            message: "Some errors in your fields!",
+            errors: validation_result.errors
+        }
+    }
+
+    const token_result = await get_jwt_token(req.headers.authorization.split(' ')[1])
+    let user = (await get_users({ "_id": token_result.data })).data[0]
+
+    if(!user.is_admin) {
+        return {
+            status: false,
+            message: "This user doesn`t have permission to create a post",
             errors: errors
         }
     }
 
+    const image_upload_result = await upload_image(req.file, "featured_image", Date.now().toString())
+    const img = image_upload_result.status ? image_upload_result.data.url : null
+
     const newPost = new Post({
-        author: token_result.data,
-        title: body.title,
+        author: user._id,
+        title: req.body.title,
         featured_image: img,
-        content_text: body.content_text 
+        content_text: req.body.content_text 
     })
     
     await newPost.save()
@@ -56,8 +59,9 @@ async function create_post(body, file) {
         message: {
             "Post": "Created!",
             "Banner": {
-                "Status": result.status,
-                "Message": result.message
+                status: image_upload_result.status,
+                message: image_upload_result.message,
+                errors: image_upload_result.errors
             }
         },
         data: { user: user, post: newPost }
@@ -74,7 +78,7 @@ async function _insert_author_to_post(post) {
     return post
 }
 
-async function get_posts(query = {}) {
+async function get_posts_by_query(query = {}) {
     try {
         let posts = await Post.find(query)
         
@@ -105,30 +109,44 @@ async function get_posts(query = {}) {
     }
 }
 
-async function delete_post(headers, params) {
+async function delete_post(req) {
     errors = {  
         headers: [],
         body: [],
         params: []
     }
 
-    const authHeader = headers.authorization;
+    const token = req.headers.authorization.split(' ')[1]
 
-    const user = await field_validation("token", authHeader.split(' ')[1])
+    const validation = await field_validation(
+        [ {
+            type: "token",
+            value: token,
+            source: "Authorization"
+        },
+        {
+            type: "post_id",
+            value: req.params.id,
+            source: "Params"
+        } ]
+    )
 
-    if(!user.is_valid) {
-        errors.headers.push({ Authorization: { message: user.message, data: user.data }})
+    if(!is_valid) {
+        errors.headers.push()
     }
-    else {
-        if(!user.data.is_admin) {
+
+    else {        
+        const token_result = await get_jwt_token(token)
+        const user = (await get_users({ "_id": token_result.data })).data[0]
+
+        if(!user.is_admin) {
             errors.headers.push({ Authorization: { message: "This user doesn`t has permission to delete post", data: user.data }})
         }
     }
-    
-    const post = await field_validation("post_id", params.id)
-    
+    const post = await field_validation("post_id", req.params.id)
+
     if(!post.is_valid) {
-        errors.params.push({ "/": { message: post.message, data: post.data }})
+        errors.params.push({ "id": { message: post.message, data: post.data }})
     }
 
     if (errors.headers.length > 0 || errors.body.length > 0 || errors.params.length > 0) {
@@ -159,7 +177,7 @@ async function delete_post(headers, params) {
 }
 
 module.exports = {
-    get_posts,
+    get_posts_by_query,
     create_post,
     delete_post
 }

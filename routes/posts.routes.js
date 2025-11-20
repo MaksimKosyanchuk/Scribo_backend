@@ -1,4 +1,4 @@
-const { Router } = require('express')
+const { Router, request } = require('express')
 const { create_post, get_posts, delete_post } = require('../services/posts.services')
 const router = Router()
 const multer = require('multer');
@@ -59,7 +59,7 @@ router.get('/:id', async (req, res) => {
 
 router.post('/create-post', upload.single('featured_image'), async (req, res) => {
     try {
-        const result = await create_post(req.body, req.file)
+        const result = await create_post(req)
 
         const result_data = {
             status: result.status ? 'success' : 'error',
@@ -90,7 +90,7 @@ router.post('/create-post', upload.single('featured_image'), async (req, res) =>
 
 router.delete('/delete-post/:id', async (req, res) => {
     try {
-        const result = await delete_post(req.headers, req.params)
+        const result = await delete_post(req)
 
         const result_data = {
             status: result.status ? 'success' : 'error',

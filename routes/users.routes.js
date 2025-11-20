@@ -1,28 +1,30 @@
 const { Router } = require('express')
-const { get_users } = require('../services/users.services')
+const { get_user, get_users } = require('../services/users.services')
 
 const router = Router()
 
 router.get('/:nick_name', async (req, res) => {
     try{
-        const user = await get_users({ 'nick_name': req.params.nick_name })
+        const user = await get_user(req)
         
-        const result_data = {
-            status: user.status ? 'success' : 'error',
-            message: user.message,
-            data: user.data[0]
-        }
-        
-        res.status(200).json(result_data)
-    }
-    catch(e){
-        const result_data = {
-            status: "error",
-            message: e.message,
-            data: null
+        if(user.status) res.status(200)
+        else {
+            if(user.errors) res.status(400)
+            else res.status(404)
         }
 
-        global.Logger.log(`Exception on get user`, { message : e.message })
+        res.json(user)
+    }
+    catch(e) {
+        const result_data = {
+            status: false,
+            message: "Internal server error",
+            data: {
+                params: req.params.nick_name
+            }
+        }
+
+        console.log(e.message)
 
         res.status(500).json(result_data)
     }
@@ -30,24 +32,24 @@ router.get('/:nick_name', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const users = await get_users(req.query)
+        const users = await get_users(req)
 
-        const result_data = {
-            status: users.status ? 'success' : 'error',
-            message: users.message,
-            data: users.data
+        if(users.status) res.status(200)
+        else {
+            if(users.errors) res.status(400)
+            else res.status(404)
         }
 
-        res.status(200).json(result_data)
+        res.json(users)
     }
     catch (e) {
         const result_data = {
             status: "error",
-            message: e.message,
-            data: null
+            message: "Internal server error",
+            data: req.query
         }
 
-        global.Logger.log(`Get post exception`, { message: e.message })
+        console.log(e.message)
 
         res.status(500).json(result_data)
     }

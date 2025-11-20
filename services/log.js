@@ -11,6 +11,7 @@ class Logger {
             })
 
             await logger.save();
+            console.log({ message: message, data: data })
         }
         catch(e) {
             console.log(e.message)
