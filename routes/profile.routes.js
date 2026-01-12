@@ -1,30 +1,24 @@
 const { Router } = require('express')
 const { get_profile, save_post, unsave_post, read_notifications } = require('../services/profile.services')
 const router = Router();
-const multer = require('multer');
-
-const upload = multer({
-    limits: { fieldSize: 25 * 1024 * 1024 }
-  })
 
 router.get('/', async (req, res) => {
     try {
         const user = await get_profile(req)
 
-        if(user.status) res.status(200)
-        else { 
-            if(user.errors) res.status(400)
-            else res.status(404)
-        }
+        res.status(user.code)
+
+        delete user.code
 
         res.json(user)
     }
     catch(e) {
-        global.Logger.log(`Get profile exception`, { message: e.message })
+        console.log(e)
 
         res.status(500).json({
             status: false,
-            message: "Internal server error"
+            message: "Internal server error",
+            data: null
         })
     }
 })
@@ -71,31 +65,24 @@ router.delete('/save-post/:id', async (req, res) => {
     }
 })
 
-router.post('/read-notifications', upload.none(), async(req, res) => {
+router.patch('/read-notifications', async(req, res) => {
     try {
-        const result = await read_notifications(req.body)
+        const result = await read_notifications(req)
 
-        const result_data = {
-            status: result.status ? 'success' : 'error',
-            message: result.message,
-            data: result.data,
-            errors: result.errors
-        }
+        res.status(result.code)
 
-        if(result.status) {
-            global.Logger.log(`User ${ result.data.user } readed all notifications`, result.data.nick_name)
-        }
+        delete result.code
 
-        res.status(200).json(result_data)
+        res.json(result)
     }
     catch(e) {
+        console.log(e)
+
         const result_data = {
-            status: "error",
-            message: e.message,
+            status: false,
+            message: "Internal server error!",
             data: null
         }
-
-        global.Logger.log(`Exception on follow`, { message : e.message })
 
         res.status(500).json(result_data)
     }

@@ -61,7 +61,36 @@ async function remove_post_from_saved(user_id, post_id) {
     }
 }
 
+async function read_notifications_by_user_id(user_id) {
+    const user = await get_user_by_query({ "_id": user_id })
+
+    if(!user.status) {
+        return {
+            status: false,
+            message: "User not found!",
+            data: null
+        }
+    }
+
+    const new_user = await User.findOneAndUpdate(
+        { _id: user.data._id },
+        {
+            $set: {
+                'notifications.$[].is_read': true
+            }
+        },
+        { new: true }
+    )
+
+    return {
+        status: true,
+        message: "Success readed all notifications",
+        data: new_user
+    }
+}
+
 module.exports = {
     add_post_to_saved,
-    remove_post_from_saved
+    remove_post_from_saved,
+    read_notifications_by_user_id
 }
