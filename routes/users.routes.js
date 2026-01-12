@@ -7,20 +7,19 @@ router.get('/:nick_name', async (req, res) => {
     try {
         const user = await get_user(req)
         
-        if(user.status) res.status(200)
-        else {
-            if(user.errors) res.status(400)
-            else res.status(404)
-        }
+        res.status(user.code)
+
+        delete user.code
 
         res.json(user)
     }
     catch(e) {
-        console.log(e.message)
+        console.log(e)
 
         res.status(500).json({
             status: false,
-            message: "Internal server error"
+            message: "Internal server error",
+            data: null
         })
     }
 })
@@ -29,20 +28,19 @@ router.get('/', async (req, res) => {
     try {
         const users = await get_users(req)
 
-        if(users.status) res.status(200)
-        else {
-            if(users.errors) res.status(400)
-            else res.status(404)
-        }
+        res.status(users.code)
+
+        delete users.code
 
         res.json(users)
     }
     catch (e) {
-        console.log(e.message)
+        console.log(e)
 
         res.status(500).json({
             status: false,
-            message: "Internal server error"
+            message: "Internal server error",
+            data: null
         })
     }
 })
@@ -62,7 +60,8 @@ router.post('/:nick_name/follow', async (req, res) => {
 
         res.status(500).json({
             status: false,
-            message: "Internal server error"
+            message: "Internal server error",
+            data: null
         })
     }
 })

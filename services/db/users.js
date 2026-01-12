@@ -1,78 +1,62 @@
 const User = require('../../models/User')
 
 async function get_users_by_query(query = {}, options = { with_password: false, with_saved_posts: false, with_notifications: false }) {
-    try {
-        let users = await User.find(query)
+    let users = await User.find(query)
 
-        if(users.length === 0) {
-            return {
-                status: false,
-                message: 'Users not found',
-                data: null
-            }
-        }
-
-        users = users.map(user => {
-            const userObj = user.toObject();
-
-            if (!options.with_password) {
-                delete userObj.password;
-            }
-
-            if (!options.with_saved_posts) {
-                delete userObj.saved_posts;
-            }
-
-            if (!options.with_notifications) {
-                delete userObj.notifications;
-            }
-
-            return userObj;
-        })
-
-        return {
-            status: true,
-            message: 'Success',
-            data: users
-        }
-    }
-    catch(e) {
+    if(users.length === 0) {
         return {
             status: false,
-            message: "Users was not found",
+            message: 'Users not found',
+            data: null
         }
+    }
+
+    users = users.map(user => {
+        const userObj = user.toObject();
+
+        if (!options.with_password) {
+            delete userObj.password;
+        }
+
+        if (!options.with_saved_posts) {
+            delete userObj.saved_posts;
+        }
+
+        if (!options.with_notifications) {
+            delete userObj.notifications;
+        }
+
+        return userObj;
+    })
+
+    return {
+        status: true,
+        message: 'Success',
+        data: users
     }
 }
 
 async function get_user_by_query(query = {}, options = { with_password: false, with_saved_posts: false, with_notifications: false }) {
-    try {
-        let user = await User.findOne(query)
+    let user = await User.findOne(query)
 
-        if(!user) {
-            return {
-                status: false,
-                message: 'User not found',
-                data: null
-            }
-        }
-
-        const userObj = user.toObject();
-
-        if(!options.with_password) delete userObj.password
-        if(!options.with_saved_posts) delete userObj.saved_posts
-        if(!options.with_notifications) delete userObj.notifications
-
-        return {
-            status: true,
-            message: 'Success',
-            data: userObj
-        }
-    }
-    catch(e) {
+    if(!user) {
         return {
             status: false,
-            message: "User was not found",
+            message: 'User not found',
+            data: null
         }
+    }
+
+    const userObj = user.toObject();
+
+    if(!options.with_password) delete userObj.password
+    if(!options.with_saved_posts) delete userObj.saved_posts
+    if(!options.with_notifications) delete userObj.notifications
+
+    return {
+        status: true,
+        message: 'Success',
+        data: userObj
     }
 }
 
@@ -86,6 +70,13 @@ async function follow_to_user_by_id(follower_id, followed_id) {
         },
         { new: true }
     );
+    if(!follower) {
+        return {
+            status: false,
+            message: "Follower not found",
+            data: null
+        }
+    }
     const followed = await User.findOneAndUpdate(
         { _id: followed_id },
         {
@@ -95,10 +86,21 @@ async function follow_to_user_by_id(follower_id, followed_id) {
         },
         { new: true }
     );
+    if(!followed) {
+        return {
+            status: false,
+            message: "Followed not found",
+            data: null
+        }
+    }
 
     return {
-        follower: follower,
-        followed: followed
+        status: true,
+        message: "Success followed",
+        data: {
+            follower: follower,
+            followed: followed
+        }
     }
 }
 
@@ -112,7 +114,13 @@ async function unfollow_to_user_by_id(follower_id, followed_id) {
         },
         { new: true }
     );
-    
+    if(!follower) {
+        return {
+            status: false,
+            message: "Follower not found!",
+            data: null
+        }
+    }
     const followed = await User.findOneAndUpdate(
         { _id: followed_id },
         {
@@ -123,9 +131,21 @@ async function unfollow_to_user_by_id(follower_id, followed_id) {
         { new: true }
     );
 
+    if(!followed) {
+        return {
+            status: false,
+            message: "Followed not found",
+            data: null
+        }
+    }
+
     return {
-        follower: follower,
-        followed: followed
+        status: true,
+        message: "Success",
+        data: {
+            follower: follower,
+            followed: followed
+        }
     }
 }
 

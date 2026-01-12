@@ -10,21 +10,15 @@ async function get_user(req){
         return {
             status: false,
             message: "Some errors in your fields",
-            errors: validation.errors
+            data: null,
+            errors: validation.errors,
+            code: 400
         }
     }
 
     const user = await get_user_by_query({ "nick_name": req.params.nick_name })
 
-    if(!user.status) {
-        return {
-            status: false,
-            message: "User was not found"
-        }
-    }
-    else {
-        return user
-    }
+    return { ...user, code: user.status ? 200 : 404 }
 }
 
 async function get_users(req){
@@ -41,21 +35,15 @@ async function get_users(req){
         return {
             status: false,
             message: "Some errors in your fields",
-            errors: validation.errors
+            data: null,
+            errors: validation.errors,
+            code: 400
         }
     }
 
     const users = await get_users_by_query(params)
     
-    if(!users.status) {
-        return {
-            status: false,
-            message: users.message,
-        }
-    }
-    else {
-        return users
-    }
+    return { ...users, code: users.status ? 200 : 404 }
 }
 
 async function follow_by_id(req) {
@@ -75,7 +63,8 @@ async function follow_by_id(req) {
     if(!validation.status) {
         return {
             status: false, 
-            message: "Some errors in your fields",
+            message: "Some errors in your fields!",
+            data: null,
             errors: validation.errors,
             code: 401
         }
@@ -89,17 +78,8 @@ async function follow_by_id(req) {
 
     if(!followed_user.status) {
         return {
-            status: false,
-            message: "Some errors in your fields",   
-            errors: {
-                params: {
-                    nick_name: {
-                        message: "User not found!",
-                        data: nick_name
-                    }
-                }
-            },
-            code: 400
+            ...followed_user,
+            code: 404
         }
     }
     
@@ -107,7 +87,8 @@ async function follow_by_id(req) {
         return {
             status: false,
             message: "You are already following this user!",
-            code: 400
+            data: null,
+            code: 409
         }
     }
 
@@ -115,7 +96,8 @@ async function follow_by_id(req) {
         return {
             status: false,
             message: "You cannot follow yourself!",
-            code: 400
+            data: null,
+            code: 409
         }
     }
 
@@ -126,16 +108,16 @@ async function follow_by_id(req) {
         message: "Success followed",
         data: {
             follower: {
-                id: follow.follower._id,
-                nick_name: follow.follower.nick_name,
-                follows: follow.follower.follows,
-                followers: follow.follower.followers
+                id: follow.data.follower._id,
+                nick_name: follow.data.follower.nick_name,
+                follows: follow.data.follower.follows,
+                followers: follow.data.follower.followers
             },
             followed: {
-                id: follow.followed._id,
-                nick_name: follow.followed.nick_name,
-                follows: follow.followed.follows,
-                followers: follow.followed.followers
+                id: follow.data.followed._id,
+                nick_name: follow.data.followed.nick_name,
+                follows: follow.data.followed.follows,
+                followers: follow.data.followed.followers
             }  
         },
         code: 200
@@ -159,7 +141,8 @@ async function unfollow_by_id(req) {
     if(!validation.status) {
         return {
             status: false, 
-            message: "Some errors in your fields",
+            message: "Some errors in your fields!",
+            data: null,
             errors: validation.errors,
             code: 401
         }
@@ -173,17 +156,8 @@ async function unfollow_by_id(req) {
 
     if(!followed_user.status) {
         return {
-            status: false,
-            message: "Some errors in your fields",   
-            errors: {
-                params: {
-                    nick_name: {
-                        message: "User not found!",
-                        data: nick_name
-                    }
-                }
-            },
-            code: 400
+            ...followed_user,
+            code: 404
         }
     }
     
@@ -191,7 +165,8 @@ async function unfollow_by_id(req) {
         return {
             status: false,
             message: "You are not following this user!",
-            code: 400
+            data: null,
+            code: 409
         }
     }
 
@@ -199,7 +174,8 @@ async function unfollow_by_id(req) {
         return {
             status: false,
             message: "You cannot unfollow yourself!",
-            code: 400
+            data: null,
+            code: 409
         }
     }
 
@@ -210,16 +186,16 @@ async function unfollow_by_id(req) {
         message: "Success unfollowed",
         data: {
             follower: {
-                id: follow.follower._id,
-                nick_name: follow.follower.nick_name,
-                follows: follow.follower.follows,
-                followers: follow.follower.followers
+                id: follow.data.follower._id,
+                nick_name: follow.data.follower.nick_name,
+                follows: follow.data.follower.follows,
+                followers: follow.data.follower.followers
             },
             followed: {
-                id: follow.followed._id,
-                nick_name: follow.followed.nick_name,
-                follows: follow.followed.follows,
-                followers: follow.followed.followers
+                id: follow.data.followed._id,
+                nick_name: follow.data.followed.nick_name,
+                follows: follow.data.followed.follows,
+                followers: follow.data.followed.followers
             }  
         },
         code: 200
