@@ -1,5 +1,5 @@
 const { Router } = require('express')
-const { get_user, get_users, follow_by_id, unfollow_by_id } = require('../services/users.services')
+const { get_user, get_users, follow_by_nick_name, unfollow_by_nick_name } = require('../services/users.services')
 
 const router = Router()
 
@@ -47,7 +47,7 @@ router.get('/', async (req, res) => {
 
 router.post('/:nick_name/follow', async (req, res) => {
     try {
-        const user = await follow_by_id(req)
+        const user = await follow_by_nick_name(req)
 
         res.status(user.code)
 
@@ -68,7 +68,7 @@ router.post('/:nick_name/follow', async (req, res) => {
 
 router.delete('/:nick_name/follow', async (req, res) => {
     try {
-        const user = await unfollow_by_id(req)
+        const user = await unfollow_by_nick_name(req)
         
         res.status(user.code)
         
@@ -81,7 +81,8 @@ router.delete('/:nick_name/follow', async (req, res) => {
 
         res.status(500).json({
             status: false,
-            message: "Internal server error"
+            message: "Internal server error",
+            data: null
         })
     }
 })

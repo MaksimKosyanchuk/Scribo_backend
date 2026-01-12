@@ -6,6 +6,7 @@ const User = require('../models/User')
 const mongoose = require('mongoose');
 const { get_user_by_query } = require('./db/users')
 const { add_post_to_saved, remove_post_from_saved, follow_to_user_by_id } = require('./db/profile')
+const { get_post_by_query } = require('./db/posts')
 
 async function get_profile(req) {
     const validation = await field_validation([{ type: "token", value: req.headers['authorization']?.split(' ')[1], source: "Authorization" }]) 
@@ -57,19 +58,114 @@ async function save_post(req) {
         return {
             status: false, 
             message: "Some errors in your fields",
-            errors: validation.errors
+            data: null,
+            errors: validation.errors,
+            code: validation.errors.authorization ? 401 : 400
         }
     }
 
     const user = await get_user_by_query({ "_id": (await get_jwt_token(token)).data }, { with_saved_posts: true })
 
-    if(!user.status) return user
+    if(!user.status) {
+        return {
+            ...user,
+            code: 401
+        }
+    }
+
+    if(!(await get_post_by_query({ "_id": req.params.id })).status) {
+        return {
+            status: false,
+            message: "Post not found!",
+            data: null,
+            code: 404
+        }
+    }
 
     if(user.data.saved_posts.some((p) => String(p) === req.params.id )) {
-        return await remove_post_from_saved(user.data._id, req.params.id)
+        return {
+            status: false,
+            message: "Post is already in saved posts!",
+            data: null,
+            code: 409
+        }    
     }
-    else {
-        return await add_post_to_saved(user.data._id, req.params.id)
+
+    const result =  await add_post_to_saved(user.data._id, req.params.id) 
+
+    return {
+        status: true,
+        message: "Success saved post",
+        data: {
+            saved_posts: result.data.saved_posts
+        },
+        code: 200
+    }
+}
+
+async function unsave_post(req) {
+    const token = req?.headers?.authorization?.split(' ')?.[1]
+    fields = [
+        {
+            type: "token",
+            value: token,
+            source: "Authorization"
+        },
+        {
+            type: "_id",
+            value: req.params.id,
+            source: "params"
+        }
+    ]
+    
+    const validation = await field_validation(fields)
+
+    if(!validation.status) {
+        return {
+            status: false, 
+            message: "Some errors in your fields",
+            data: null,
+            errors: validation.errors,
+            code: validation.errors.authorization ? 401 : 400
+        }
+    }
+
+    const user = await get_user_by_query({ "_id": (await get_jwt_token(token)).data }, { with_saved_posts: true })
+
+    if(!user.status) {
+        return {
+            ...user,
+            code: 401
+        }
+    }
+
+    if(!(await get_post_by_query({ "_id": req.params.id })).status) {
+        return {
+            status: false,
+            message: "Post not found!",
+            data: null,
+            code: 404
+        }
+    }
+
+    if(!user.data.saved_posts.some((p) => String(p) === req.params.id )) {
+        return {
+            status: false,
+            message: "Post is not in saved posts!",
+            data: null,
+            code: 409
+        }
+    }
+
+    const result = await remove_post_from_saved(user.data._id, req.params.id)
+
+    return {
+        status: true,
+        message: "Success unsaved post",
+        data: {
+            saved_posts: result.data.saved_posts
+        },
+        code: 200
     }
 }
 
@@ -296,6 +392,7 @@ async function read_notifications(body) {
 module.exports = {
     get_profile,
     save_post, 
+    unsave_post,
     follow_by_id,
     unfollow,
     read_notifications

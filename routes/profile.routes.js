@@ -1,9 +1,7 @@
 const { Router } = require('express')
-const { get_profile, save_post, follow, follow_by_id, unfollow, read_notifications } = require('../services/profile.services')
+const { get_profile, save_post, unsave_post, read_notifications } = require('../services/profile.services')
 const router = Router();
 const multer = require('multer');
-const { add_post_to_saved } = require('../services/db/profile');
-const { IoTFleetHub } = require('aws-sdk');
 
 const upload = multer({
     limits: { fieldSize: 25 * 1024 * 1024 }
@@ -31,15 +29,13 @@ router.get('/', async (req, res) => {
     }
 })
 
-router.patch('/save-post/:id', async (req, res) => {
+router.post('/save-post/:id', async (req, res) => {
     try {
         const result = await save_post(req)
         
-        if(result.status) res.status(200)
-        else {
-            if(result.errors) res.status(400)
-            else res.status(404)
-        }
+        res.status(result.code)
+
+        delete result.code
 
         res.json(result)
     }
@@ -48,7 +44,29 @@ router.patch('/save-post/:id', async (req, res) => {
 
         res.status(500).json({
             status: false,
-            message: "Internal server error"
+            message: "Internal server error",
+            data: null
+        })
+    }
+})
+
+router.delete('/save-post/:id', async (req, res) => {
+    try {
+        const result = await unsave_post(req)
+        
+        res.status(result.code)
+
+        delete result.code
+
+        res.json(result)
+    }
+    catch(e) {
+        console.log(e)
+
+        res.status(500).json({
+            status: false,
+            message: "Internal server error",
+            data: null
         })
     }
 })

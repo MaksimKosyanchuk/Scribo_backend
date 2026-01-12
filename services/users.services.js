@@ -46,7 +46,7 @@ async function get_users(req){
     return { ...users, code: users.status ? 200 : 404 }
 }
 
-async function follow_by_id(req) {
+async function follow_by_nick_name(req) {
     const nick_name = req.params["nick_name"]
     const token = req?.headers?.authorization?.split(' ')?.[1]
     
@@ -124,7 +124,7 @@ async function follow_by_id(req) {
     }
 }
 
-async function unfollow_by_id(req) {
+async function unfollow_by_nick_name(req) {
     const nick_name = req.params["nick_name"]
     const token = req?.headers?.authorization?.split(' ')?.[1]
     
@@ -209,6 +209,6 @@ async function add_notification_to_user_by_id(user_id, message) {
 module.exports = {
     get_users,
     get_user,
-    follow_by_id,
-    unfollow_by_id
+    follow_by_nick_name,
+    unfollow_by_nick_name
 }
