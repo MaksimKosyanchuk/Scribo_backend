@@ -102,7 +102,7 @@ async function upload_image(file, type, file_name) {
     }
 }
 
-async function delete_image(url_file) {
+async function delete_file(url_file) {
     try {
         const parsedUrl = url.parse(url_file);
         const key = decodeURIComponent(parsedUrl.pathname).slice(1);
@@ -117,7 +117,7 @@ async function delete_image(url_file) {
         return true;
 
     } catch (error) {
-        console.error('Ошибка при удалении файла из S3:', error);
+        console.error('Failed to delete file:', error);
         return false;
     }
 }
@@ -125,6 +125,5 @@ async function delete_image(url_file) {
 module.exports = {
     upload_image,
     aws_configure,
-    delete_image,
-    s3,
+    delete_file
 };

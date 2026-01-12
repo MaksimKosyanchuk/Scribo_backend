@@ -1,121 +1,98 @@
-const { Router, request } = require('express')
-const { create_post, get_posts, delete_post } = require('../services/posts.services')
+const { Router } = require('express')
+const { create_post, get_posts, get_post_by_id, delete_post } = require('../services/posts.services')
 const router = Router()
 const multer = require('multer');
 
 const upload = multer({
     limits: { fieldSize: 25 * 1024 * 1024 }
-  })
+})
 
 router.get('/', async (req, res) => {
     try {
-        const posts = await get_posts(req.query)
+        const posts = await get_posts(req)
 
-        const result_data = {
-            status: posts.status ? 'success' : 'error',
-            message: posts.message,
-            data: posts.data
+        if(posts.status) res.status(200)
+        else{
+            if(posts.errors) res.status(400)
+            else res.status(404)
         }
 
-        res.status(200).json(result_data)
+        res.json(posts)
     }
     catch (e) {
-        const result_data = {
-            status: "error",
-            message: e.message,
-            data: null
-        }
-
         global.Logger.log(`Get post exception`, { message: e.message })
 
-        res.status(500).json(result_data)
+        res.status(500).json({
+            status: false,
+            message: "Internal server error"
+        })
     }
 })
 
 router.get('/:id', async (req, res) => {
     try {
-        const posts = await get_posts({ "_id": req.params.id })
+        const posts = await get_post_by_id(req)
         
-        const result_data = {
-            status: posts.status ? 'success' : 'error',
-            message: posts.message,
-            data: posts.data ? posts.data[0] : null
+        if(posts.status) res.status(200)
+
+        else{
+            if(posts.errors) res.status(400)
+            else res.status(404)
         }
 
-        res.status(200).json(result_data)
+        res.json(posts)
     }
     catch(e) {
-        const result_data = {
-            status: "error",
-            message: e.message,
-            data: null
-        }
-
         global.Logger.log(`Get post exception`, { message: e.message })
 
-        res.status(500).json(result_data)
+        res.status(500).json({
+            status: false,
+            message: "Internal server error"
+        })
     }
 })
 
-router.post('/create-post', upload.single('featured_image'), async (req, res) => {
+router.post('/', upload.single('featured_image'), async (req, res) => {
     try {
         const result = await create_post(req)
 
-        const result_data = {
-            status: result.status ? 'success' : 'error',
-            message: result.message,
-            data: result.data,
-            errors: result.errors
-        }
-
-        if(result.status) {
-            global.Logger.log(`User ${ result_data.data.user.nick_name } created post`, result.data)
-        }
-
-        res.status(200).json(result_data)
+        if(result.errors) res.status(400)
+        else if(!result.status) res.status(404)
+        else res.status(200)
+        
+        res.json(result) 
 
     } catch (e) {
-        console.log(e)
-        const result_data = {
-            status: "error",
-            message: e.message,
-            data: null
-        }
+        console.log(e.message)
 
-        global.Logger.log(`Create post exception`, { message: e.message })
-
-        res.status(500).json(result_data)
+        res.status(500).json(
+            {
+                status: false,
+                message: "Internal server error"
+            }
+        )
     }
 })
 
-router.delete('/delete-post/:id', async (req, res) => {
+router.delete('/:id', async (req, res) => {
     try {
         const result = await delete_post(req)
 
-        const result_data = {
-            status: result.status ? 'success' : 'error',
-            message: result.message,
-            data: result.data,
-            errors: result.errors
-        }
+        if(result.errors) res.status(400)
+        else if(!result.status) res.status(404)
+        else res.status(200) 
 
-        if(result.status) {
-            global.Logger.log(`User ${ result_data.data.user.nick_name } deleted post`, result.data)
-        }
-
-        res.status(200).json(result_data)
+        res.json(result)
 
     } catch (e) {
-        console.log(e)
-        const result_data = {
-            status: "error",
-            message: e.message,
-            data: null
-        }
+        console.log(e.message)
 
-        global.Logger.log(`Delete post exception`, { message: e.message })
-
-        res.status(500).json(result_data)
+        res.status(500).json(
+            {
+                status: false,
+                message: "Internal server error"
+            }
+        )
     }
 })
 

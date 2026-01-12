@@ -1,8 +1,9 @@
 const Post = require('../../models/Post')
 const { get_jwt_token } = require('./jwt')
-const { get_users } = require('../users.services')
+const { get_user } = require('../db/users')
 const { get_posts_by_query } = require('../posts.services')
 const mongoose = require('mongoose');
+const { get_post_by_query } = require('../db/posts');
 
 function push_to_errors(errors, source, field) {
     if(!errors[source]) {
@@ -49,38 +50,12 @@ async function field_validation(fields) {
                         errors = push_to_errors(errors, field.source, { type: "token", data: { message: "Incorrect token!", data: field.value }})
                         break
                     }
-                    
-                    let user = await get_users({ "_id": token_result.data })
-                    
-                    if(!user.status) {
-                        errors = push_to_errors(errors, field.source, { type: "token", data: { message: "Incorrect token!", data: field.value }})
-                       
-                        break
-                    }
                 }
                 catch(e) {
                     console.log(e.message)
                     errors = push_to_errors(errors, field.source, { type: "token", data: { message: "Incorrect token!", data: field.value }})
                 }
-
                 break
-            case "post_id":
-                if(!field.value || field.value.trim().length === 0) {
-                    errors = push_to_errors(errors, field.source, { type: "post_id", data: { message: "Post id is empty!", data: field.value }})
-                    break
-                }
-                try {
-                    let posts = await get_posts_by_query({ "_id": field.value }) 
-
-                    if(!posts) {
-                        errors = push_to_errors(errors, field.source, { type: "post_id", data: { message: "Post is not found!", data: field.value }})
-                    }
-
-                    break
-                }
-                catch(e) {
-                    errors = push_to_errors(errors, field.source, { type: "post_id", data: { message: "Internal server error!", data: field.value }})
-                }
             case "description":
                 if(!field.value || field.value.length > 60) {
                     errors = push_to_errors(errors, field.source, { type: "description", data: { message: "Description must be less then 60!", data: field.value }})
@@ -96,17 +71,37 @@ async function field_validation(fields) {
                     errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Nick name must be more then 2 and less then 21!", data: field.value }})
                 }
                 break
-            case "user_id":
+            case "_id":
                 if(!field.value || field.value.trim().length === 0) {
-                    errors = push_to_errors(errors, field.source, { type: "user_id", data: { message: "User id must be non empty!", data: field.value }})
+                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Id must be non empty!", data: field.value }})
                 }
                 else {
                     if (!mongoose.Types.ObjectId.isValid(field.value)) {
-                        errors = push_to_errors(errors, field.source, { type: "user_id", data: { message: "Incorrect type!", data: field.value }})
+                        errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Incorrect type!", data: field.value }})
                     }
                 }
                 break
-            }
+            case "id":
+                if(!field.value || field.value.trim().length === 0) {
+                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Id must be non empty!", data: field.value }})
+                }
+                else {
+                    if (!mongoose.Types.ObjectId.isValid(field.value)) {
+                        errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Incorrect type!", data: field.value }})
+                    }
+                }
+                break
+            case "author":
+                if(!field.value || field.value.trim().length === 0) {
+                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Id must be non empty!", data: field.value }})
+                }
+                else {
+                    if (!mongoose.Types.ObjectId.isValid(field.value)) {
+                        errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Incorrect type!", data: field.value }})
+                    }
+                }
+                break
+        }
     }
     return {
         status: Object.keys(errors).length === 0,

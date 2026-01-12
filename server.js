@@ -29,14 +29,15 @@ app.use('/', require('./routes/default.routes'))
 const start = async () => {
     try {
         global.Logger = new Logger()
-        aws_configure()
+        await aws_configure()
         console.log("logger is initialized")
         await mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.lccalb5.mongodb.net/?retryWrites=true&w=majority`)
         app.listen(port, () => {} )
     }
     catch (e) { 
+        console.log(e)
         global.Logger.log(e.message)
-        global.Logger.Log("Ending program")
+        global.Logger.log("Ending program")
         process.exit(1)
     }
 }

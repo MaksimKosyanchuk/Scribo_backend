@@ -1,10 +1,10 @@
 const { Router } = require('express')
-const { get_user, get_users } = require('../services/users.services')
+const { get_user, get_users, follow_by_id, unfollow_by_id } = require('../services/users.services')
 
 const router = Router()
 
 router.get('/:nick_name', async (req, res) => {
-    try{
+    try {
         const user = await get_user(req)
         
         if(user.status) res.status(200)
@@ -16,17 +16,12 @@ router.get('/:nick_name', async (req, res) => {
         res.json(user)
     }
     catch(e) {
-        const result_data = {
-            status: false,
-            message: "Internal server error",
-            data: {
-                params: req.params.nick_name
-            }
-        }
-
         console.log(e.message)
 
-        res.status(500).json(result_data)
+        res.status(500).json({
+            status: false,
+            message: "Internal server error"
+        })
     }
 })
 
@@ -43,17 +38,53 @@ router.get('/', async (req, res) => {
         res.json(users)
     }
     catch (e) {
-        const result_data = {
-            status: "error",
-            message: "Internal server error",
-            data: req.query
-        }
-
         console.log(e.message)
 
-        res.status(500).json(result_data)
+        res.status(500).json({
+            status: false,
+            message: "Internal server error"
+        })
     }
 })
 
+router.post('/:nick_name/follow', async (req, res) => {
+    try {
+        const user = await follow_by_id(req)
+
+        res.status(user.code)
+
+        delete user.code
+
+        res.json(user)
+    }
+    catch(e) {
+        console.log(e)
+
+        res.status(500).json({
+            status: false,
+            message: "Internal server error"
+        })
+    }
+})
+
+router.delete('/:nick_name/follow', async (req, res) => {
+    try {
+        const user = await unfollow_by_id(req)
+        
+        res.status(user.code)
+        
+        delete user.code
+
+        res.json(user)
+    }
+    catch(e) {
+        console.log(e)
+
+        res.status(500).json({
+            status: false,
+            message: "Internal server error"
+        })
+    }
+})
 
 module.exports = router
