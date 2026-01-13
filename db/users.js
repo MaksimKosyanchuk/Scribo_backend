@@ -1,4 +1,4 @@
-const User = require('../../models/User')
+const User = require('../models/User')
 
 async function get_users_by_query(query = {}, options = { with_password: false, with_saved_posts: false, with_notifications: false }) {
     let users = await User.find(query)

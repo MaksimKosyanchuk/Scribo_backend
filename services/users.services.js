@@ -1,6 +1,6 @@
 const User = require('../models/User')
 const { field_validation } = require('./utils/validation')
-const { get_user_by_query, get_users_by_query, follow_to_user_by_id, unfollow_to_user_by_id } = require('./db/users')
+const { get_user_by_query, get_users_by_query, follow_to_user_by_id, unfollow_to_user_by_id } = require('../db/users')
 const { get_profile } = require('./profile.services')
 
 async function get_user(req){

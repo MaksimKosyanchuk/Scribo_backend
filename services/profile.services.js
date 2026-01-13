@@ -1,8 +1,8 @@
 const { get_jwt_token } = require('./utils/jwt')
 const { field_validation } = require('./utils/validation')
-const { get_user_by_query } = require('./db/users')
-const { add_post_to_saved, remove_post_from_saved, read_notifications_by_user_id } = require('./db/profile')
-const { get_post_by_query } = require('./db/posts')
+const { get_user_by_query } = require('../db/users')
+const { add_post_to_saved, remove_post_from_saved, read_notifications_by_user_id } = require('../db/profile')
+const { get_post_by_query } = require('../db/posts')
 
 async function get_profile(req) {
     const token = req.headers['authorization']?.split(' ')[1]

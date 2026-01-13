@@ -1,8 +1,8 @@
 const { get_jwt_token } = require('./utils/jwt')
-const { get_user_by_query, get_users_by_query, remove_post_from_saved } = require('./db/users')
+const { get_user_by_query, get_users_by_query, remove_post_from_saved } = require('../db/users')
 const { upload_image, delete_file } = require("./aws.services")
 const { field_validation } = require("./utils/validation")
-const { get_posts_by_query, get_post_by_query, create_new_post, delete_post_by_id } = require('./db/posts')
+const { get_posts_by_query, get_post_by_query, create_new_post, delete_post_by_id } = require('../db/posts')
 const { get_profile } = require('./profile.services')
 const { ObjectId } = require('mongodb');
 

@@ -1,8 +1,6 @@
 const bcrypt = require("bcryptjs")
-const User = require("../models/User")
-const { get_users } = require("./users.services")
-const { get_user_by_query } = require('./db/users')
-const { create_new_user } = require('./db/auth')
+const { get_user_by_query } = require('../db/users')
+const { create_new_user } = require('../db/auth')
 const { upload_image } = require("./aws.services")
 const { field_validation } = require("./utils/validation")
 const { set_jwt_token } = require("./utils/jwt")
@@ -11,51 +9,61 @@ async function compare_passwords(password, from_db) {
     return await bcrypt.compare(password, from_db)
 }
 
-async function login(body) {
-    let errors = {}
+async function login(req) {
+    const body = req.body
+    params = ["nick_name", "password"]
+    fields = []
 
-    // for (let item of ['nick_name', 'password']) {
-    //     const validation = await field_validation(item, body[item])
+    params.map((param) => { fields.push({ type: param, value: req.body[param], source: "body" }) })
+    let validation = await field_validation(fields)
 
-    //     if(!validation.is_valid) {
-    //         errors[item] = validation.message
-    //     }
-    // }
-
-    let find_user = await get_users({ 'nick_name': body.nick_name }, { with_password: true })
-    
-    if(!errors.nick_name) {
-        if(!find_user.status) {
-            errors.nick_name = "Current user doesn`t exists"
-        }
-        else {
-            find_user.data = find_user.data[0]
-        }
-    }
-
-    if(Object.keys(errors).length === 0) {
-        const is_match = await compare_passwords(body.password, find_user.data.password)
-
-        if(!is_match) {
-            errors.password = "Incorrect password"
-        }
-    }
-
-    if(Object.keys(errors).length > 0) {
+    if(!validation.status) {
         return {
             status: false,
-            message: "Errors in your form",
-            errors
+            message: "Some errors in your fields!",
+            data: null,
+            errors: validation.errors,
+            code: 400
         }
     }
+
+    let find_user = await get_user_by_query({ 'nick_name': body.nick_name }, { with_password: true })
+    
+    if(!find_user.status) {
+        return {
+            status: false,
+            message: "User not found!",
+            data: null,
+            code: 404
+        }
+    }
+
+    const is_match = await compare_passwords(body.password, find_user.data.password)
+    
+    if(!is_match) {
+        return {
+            status: false,
+            message: "Incorrect login or password!",
+            data: null,
+            code: 401
+        }
+    }
+    
+    global.Logger.log({
+        type: "login",
+        message: `User ${find_user.data.nick_name} logged in`,
+        data: {
+            user: find_user.data._id
+        }
+    })
 
     return {
         status: true,
         message: "Authorized!",
         data: {
-            user: find_user.data,
             token: await set_jwt_token(find_user.data._id)
-        }
+        },
+        code: 200
     }
 }
 

@@ -172,5 +172,28 @@ async function normalizeDeletePostLogs() {
   console.log(`Normalized ${logs.length} delete_post logs`);
 }
 
-module.exports = { normalizeCreatePostLogsNames };
+async function normalizeLoginLogs() {
+    // Находим все логи типа 'login'
+    const logs = await Log.find({ type: 'login' });
+
+    console.log(`Found ${logs.length} login logs to normalize`);
+
+    for (let log of logs) {
+        if (log.data && log.data.user) {
+            // Ищем пользователя по id
+            const user = await User.findOne({ _id: log.data.user });
+            
+            if (user) {
+                log.message = `User ${user.nick_name} logged in`;
+                await log.save();
+            } else {
+                console.log(`User not found for log ${log._id}`);
+            }
+        }
+    }
+
+    console.log(`Normalized ${logs.length} login logs`);
+}
+
+module.exports = { normalizeLoginLogs };
 

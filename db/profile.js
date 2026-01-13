@@ -1,4 +1,4 @@
-const User = require('../../models/User')
+const User = require('../models/User')
 const { get_post_by_query } = require('./posts')
 const { get_user_by_query } = require('./users')
 

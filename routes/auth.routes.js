@@ -16,20 +16,20 @@ router.options('/register', (req, res) => {
 
 router.post('/login', async (req, res) => {
     try {
-        const result = await login(req.body) 
+        const result = await login(req) 
         
-        const result_data = {
-            status: result.status ? 'success' : 'error',
-            message: result.message,
-            data: result.data,
-            errors: result.errors
-        }
-        res.status(200).json(result_data)
+        res.status(result.code)
+
+        delete result.code
+
+        res.json(result)
     }
     catch(e) {
+        console.log(e)
+
         const result_data = {
-            status: "error",
-            message: e.message, 
+            status: false,
+            message: "Internal server error", 
             data: null
         }
 
