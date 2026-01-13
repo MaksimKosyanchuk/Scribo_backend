@@ -103,6 +103,15 @@ async function follow_by_nick_name(req) {
 
     const follow = await follow_to_user_by_id(profile.data._id, followed_user.data._id)
 
+    global.Logger.log({
+        type: "follow",
+        message: `User ${follow.data.follower.nick_name} followed ${follow.data.followed.nick_name}`,
+        data: {
+            follower: follow.data.follower._id,
+            followed: follow.data.followed._id
+        }
+    })
+
     return {
         status: true,
         message: "Success followed",
@@ -181,6 +190,15 @@ async function unfollow_by_nick_name(req) {
 
     const follow = await unfollow_to_user_by_id(profile.data._id, followed_user.data._id)
 
+    global.Logger.log({
+        type: "unfollow",
+        message: `User ${follow.data.follower.nick_name} unfollowed ${follow.data.followed.nick_name}`,
+        data: {
+            follower: follow.data.follower._id,
+            followed: follow.data.followed._id
+        }
+    })
+
     return {
         status: true,
         message: "Success unfollowed",
@@ -200,10 +218,6 @@ async function unfollow_by_nick_name(req) {
         },
         code: 200
     }
-}
-
-async function add_notification_to_user_by_id(user_id, message) {
-
 }
 
 module.exports = {

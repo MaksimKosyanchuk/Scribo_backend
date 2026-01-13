@@ -149,9 +149,31 @@ async function unfollow_to_user_by_id(follower_id, followed_id) {
     }
 }
 
+async function remove_post_from_saved(user_id, post_id) {
+    const new_user = await User.findOneAndUpdate(
+        { _id: user_id },
+        { $pull: { saved_posts: new ObjectId(post_id) } },
+        { new: true }
+    );
+    if(!new_user) {
+        return {
+            status: false,
+            message: "User not found!",
+            data: null
+        }
+    }
+
+    return {
+        status: true,
+        message: "Success removed post from saved",
+        data: new_user
+    }
+}
+
 module.exports = {
     get_users_by_query,
     get_user_by_query,
     follow_to_user_by_id,
-    unfollow_to_user_by_id
+    unfollow_to_user_by_id,
+    remove_post_from_saved
 }

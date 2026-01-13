@@ -5,6 +5,8 @@ const url = require('url');
 const UPLOAD_LIMIT_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
 
+process.env.AWS_SDK_JS_SUPPRESS_MAINTENANCE_MODE_MESSAGE = '1';
+
 AWS.config.update({
     accessKeyId: process.env.AWS_CONNECT_ACCESS_KEY,
     secretAccessKey: process.env.AWS_CONNECT_SECRET_ACCESS_KEY,
@@ -15,10 +17,17 @@ const s3 = new AWS.S3();
 
 async function aws_configure() {
     try {
-        const data = await s3.listBuckets().promise();
-        console.log('AWS Buckets:', data.Buckets.map(b => b.Name));
+        await s3.headBucket({ Bucket: process.env.AWS_CONNECT_BUCKET_NAME }).promise();
+        console.log(`Success configured aws, bucket: ${process.env.AWS_CONNECT_BUCKET_NAME}`);
     } catch (err) {
-        global.Logger.log("Ошибка при подключении к AWS:", { message: err });
+        global.Logger.log({
+            type: "error",
+            message: "Error to configure aws",
+            data: { 
+                error: err
+            }
+        });
+        throw err
     }
 }
 
@@ -81,7 +90,7 @@ async function upload_image(file, type, file_name) {
                 status: true,
                 message: "Successfully uploaded",
                 data: {
-                url: `https://${process.env.AWS_CONNECT_BUCKET_NAME}.s3.${process.env.AWS_CONNECT_REGION}.amazonaws.com/${key}`,
+                    url: `https://${process.env.AWS_CONNECT_BUCKET_NAME}.s3.${process.env.AWS_CONNECT_REGION}.amazonaws.com/${key}`,
                 },
             };
         } else {
@@ -92,13 +101,18 @@ async function upload_image(file, type, file_name) {
             };
         }
     } catch (e) {
-        global.Logger.log("AWS upload error:", e);
+        global.Logger.log({
+            type: "error",
+            message: "Error to upload image to aws!",
+            data: { 
+                file: file,
+                type: type,
+                file_name: file_name,
+                error: e
+            }
+        });
 
-        return {
-            status: false,
-            message: e.message || 'Unknown error occurred during upload',
-            data: null,
-        };
+        throw e
     }
 }
 

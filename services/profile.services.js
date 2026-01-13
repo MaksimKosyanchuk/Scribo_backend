@@ -5,19 +5,22 @@ const { add_post_to_saved, remove_post_from_saved, read_notifications_by_user_id
 const { get_post_by_query } = require('./db/posts')
 
 async function get_profile(req) {
-    const validation = await field_validation([{ type: "token", value: req.headers['authorization']?.split(' ')[1], source: "Authorization" }]) 
-    
+    const token = req.headers['authorization']?.split(' ')[1]
+
+    const validation = await field_validation([{ type: "token", value: token, source: "Authorization" }]) 
+
     if(!validation.status) {
         return {
             status: false,
             message: "Unauthorized!",
             data: null,
+            errors: validation.errors,
             code: 401
         }
     }
 
-    const token = (await get_jwt_token(req.headers['authorization']?.split(' ')[1])).data
-    const user = await get_user_by_query({ '_id': token }, { with_saved_posts: true, with_notifications: true })
+    const user_id = (await get_jwt_token(req.headers['authorization']?.split(' ')[1])).data
+    const user = await get_user_by_query({ '_id': user_id }, { with_saved_posts: true, with_notifications: true })
 
     if(!user.status) {
         return {
@@ -93,6 +96,15 @@ async function save_post(req) {
 
     const result =  await add_post_to_saved(user.data._id, req.params.id) 
 
+    global.Logger.log({
+        type: "save_post",
+        message: `User ${result.data.nick_name} saved post ${req.params.id}`,
+        data: {
+            user: result.data._id,
+            post_id: req.params.id
+        }
+    })
+    
     return {
         status: true,
         message: "Success saved post",
@@ -158,6 +170,15 @@ async function unsave_post(req) {
     }
 
     const result = await remove_post_from_saved(user.data._id, req.params.id)
+
+    global.Logger.log({ 
+        type: "unsave_post",
+        message: `User ${result.data.nick_name} unsaved post ${req.params.id}`,
+        data: {
+            user: result.data._id,
+            post_id: req.params.id
+        }
+    })
 
     return {
         status: true,

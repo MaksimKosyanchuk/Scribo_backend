@@ -5,6 +5,7 @@ const app = express()
 require('dotenv').config()
 const Logger = require('./services/log')
 const { aws_configure } = require('./services/aws.services')
+const { normalizeCreatePostLogsNames } = require('./services/utils/fix_db')
 
 const port = process.env.PORT
 
@@ -28,16 +29,16 @@ app.use('/', require('./routes/default.routes'))
 
 const start = async () => {
     try {
+        console.log("")
         global.Logger = new Logger()
         await aws_configure()
-        console.log("logger is initialized")
+        console.log("Global logger is initialized\n")
         await mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.lccalb5.mongodb.net/?retryWrites=true&w=majority`)
+        //await normalizeCreatePostLogsNames()
         app.listen(port, () => {} )
     }
     catch (e) { 
         console.log(e)
-        global.Logger.log(e.message)
-        global.Logger.log("Ending program")
         process.exit(1)
     }
 }

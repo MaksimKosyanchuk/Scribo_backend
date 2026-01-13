@@ -11,20 +11,19 @@ router.get('/', async (req, res) => {
     try {
         const posts = await get_posts(req)
 
-        if(posts.status) res.status(200)
-        else{
-            if(posts.errors) res.status(400)
-            else res.status(404)
-        }
+        res.status(posts.code)
+
+        delete posts.code
 
         res.json(posts)
     }
     catch (e) {
-        global.Logger.log(`Get post exception`, { message: e.message })
+        console.log(e)
 
         res.status(500).json({
             status: false,
-            message: "Internal server error"
+            message: "Internal server error",
+            data: null
         })
     }
 })
@@ -33,21 +32,19 @@ router.get('/:id', async (req, res) => {
     try {
         const posts = await get_post_by_id(req)
         
-        if(posts.status) res.status(200)
+        res.status(posts.code)
 
-        else{
-            if(posts.errors) res.status(400)
-            else res.status(404)
-        }
+        delete posts.code
 
         res.json(posts)
     }
     catch(e) {
-        global.Logger.log(`Get post exception`, { message: e.message })
+        console.log(e)
 
         res.status(500).json({
             status: false,
-            message: "Internal server error"
+            message: "Internal server error",
+            data: null
         })
     }
 })
@@ -56,21 +53,20 @@ router.post('/', upload.single('featured_image'), async (req, res) => {
     try {
         const result = await create_post(req)
 
-        if(result.errors) res.status(400)
-        else if(!result.status) res.status(404)
-        else res.status(200)
+        res.status(result.code)
+
+        delete result.code
         
         res.json(result) 
 
     } catch (e) {
-        console.log(e.message)
+        console.log(e)
 
-        res.status(500).json(
-            {
-                status: false,
-                message: "Internal server error"
-            }
-        )
+        res.status(500).json({
+            status: false,
+            message: "Internal server error",
+            data: null
+        })
     }
 })
 
@@ -78,9 +74,9 @@ router.delete('/:id', async (req, res) => {
     try {
         const result = await delete_post(req)
 
-        if(result.errors) res.status(400)
-        else if(!result.status) res.status(404)
-        else res.status(200) 
+        res.status(result.code)
+
+        delete result.code
 
         res.json(result)
 
@@ -90,7 +86,8 @@ router.delete('/:id', async (req, res) => {
         res.status(500).json(
             {
                 status: false,
-                message: "Internal server error"
+                message: "Internal server error",
+                data: null
             }
         )
     }

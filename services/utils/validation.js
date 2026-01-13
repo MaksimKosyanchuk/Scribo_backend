@@ -1,9 +1,5 @@
-const Post = require('../../models/Post')
 const { get_jwt_token } = require('./jwt')
-const { get_user } = require('../db/users')
-const { get_posts_by_query } = require('../posts.services')
 const mongoose = require('mongoose');
-const { get_post_by_query } = require('../db/posts');
 
 function push_to_errors(errors, source, field) {
     if(!errors[source]) {
@@ -57,7 +53,7 @@ async function field_validation(fields) {
                 }
                 break
             case "description":
-                if(!field.value || field.value.length > 60) {
+                if(field.value && field.value.length > 60) {
                     errors = push_to_errors(errors, field.source, { type: "description", data: { message: "Description must be less then 60!", data: field.value }})
                 }
                 break
