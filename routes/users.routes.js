@@ -1,5 +1,5 @@
 const { Router } = require('express')
-const { get_user, get_users, follow_by_nick_name, unfollow_by_nick_name } = require('../services/users.services')
+const { get_user, get_users, follow, unfollow } = require('../services/users.services')
 
 const router = Router()
 
@@ -45,9 +45,9 @@ router.get('/', async (req, res) => {
     }
 })
 
-router.post('/:nick_name/follow', async (req, res) => {
+router.post('/:id/follow', async (req, res) => {
     try {
-        const user = await follow_by_nick_name(req)
+        const user = await follow(req)
 
         res.status(user.code)
 
@@ -66,9 +66,9 @@ router.post('/:nick_name/follow', async (req, res) => {
     }
 })
 
-router.delete('/:nick_name/follow', async (req, res) => {
+router.delete('/:id/follow', async (req, res) => {
     try {
-        const user = await unfollow_by_nick_name(req)
+        const user = await unfollow(req)
         
         res.status(user.code)
         

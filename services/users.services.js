@@ -23,11 +23,23 @@ async function get_user(req){
 
 async function get_users(req){
     const params = req.query;
-    const fields = []
 
-    for(field of Object.keys(req.query)) {
-        fields.push({ type: field, value: req.query[field], source: "params" })
-    }
+    const fields = Object.keys(params).flatMap(key => {
+        const value = params[key];
+
+        if (Array.isArray(value)) {
+            return value.map(v => ({
+                type: key,
+                value: v,
+                source: "params"
+            }));
+            }
+        return [{
+            type: key,
+            value,
+            source: "params"
+        }];
+    });
 
     const validation = await field_validation(fields)
 
@@ -46,16 +58,20 @@ async function get_users(req){
     return { ...users, code: users.status ? 200 : 404 }
 }
 
-async function follow_by_nick_name(req) {
-    const nick_name = req.params["nick_name"]
+async function follow(req) {
+    const id = req.params["id"]
     const token = req?.headers?.authorization?.split(' ')?.[1]
-    
     fields = [
         {
             type: "token",
             value: token,
             source: "Authorization"
-        }
+        },
+        {
+            type: "id",
+            value: id,
+            source: "params"
+        },
     ]
     
     const validation = await field_validation(fields)
@@ -74,7 +90,7 @@ async function follow_by_nick_name(req) {
 
     if(!profile.status) return profile
 
-    let followed_user = await get_user_by_query({ "nick_name": nick_name })
+    let followed_user = await get_user_by_query({ "_id": id })
 
     if(!followed_user.status) {
         return {
@@ -133,8 +149,8 @@ async function follow_by_nick_name(req) {
     }
 }
 
-async function unfollow_by_nick_name(req) {
-    const nick_name = req.params["nick_name"]
+async function unfollow(req) {
+    const id = req.params["id"]
     const token = req?.headers?.authorization?.split(' ')?.[1]
     
     fields = [
@@ -142,7 +158,12 @@ async function unfollow_by_nick_name(req) {
             type: "token",
             value: token,
             source: "Authorization"
-        }
+        },
+        {
+            type: "id",
+            value: id,
+            source: "params"
+        },
     ]
     
     const validation = await field_validation(fields)
@@ -161,7 +182,7 @@ async function unfollow_by_nick_name(req) {
 
     if(!profile.status) return profile
 
-    let followed_user = await get_user_by_query({ "nick_name": nick_name })
+    let followed_user = await get_user_by_query({ "_id": id })
 
     if(!followed_user.status) {
         return {
@@ -223,6 +244,6 @@ async function unfollow_by_nick_name(req) {
 module.exports = {
     get_users,
     get_user,
-    follow_by_nick_name,
-    unfollow_by_nick_name
+    follow,
+    unfollow
 }

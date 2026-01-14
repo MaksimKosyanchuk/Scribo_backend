@@ -105,11 +105,23 @@ async function get_posts(req) {
     const expand = params.expand
     delete params.expand
 
-    const fields = Object.keys(params).map(key => ({
-        type: key,
-        value: params[key],
-        source: "params"
-    }));
+    const fields = Object.keys(params).flatMap(key => {
+        const value = params[key];
+
+        // если значение — массив
+        if (Array.isArray(value)) {
+            return value.map(v => ({
+                type: key,
+                value: v,
+                source: "params"
+            }));
+            }
+        return [{
+            type: key,
+            value,
+            source: "params"
+        }];
+    });
 
     const validation = await field_validation(fields)
 

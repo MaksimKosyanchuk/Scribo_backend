@@ -68,7 +68,7 @@ async function field_validation(fields) {
                 }
                 break
             case "_id":
-                if(!field.value || field.value.trim().length === 0) {
+                if(!field.value || field.value.toString().trim().length === 0) {
                     errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Id must be non empty!", data: field.value }})
                 }
                 else {
