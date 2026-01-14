@@ -1,6 +1,7 @@
 const User = require('../models/User')
 const { field_validation } = require('./utils/validation')
 const { get_user_by_query, get_users_by_query, follow_to_user_by_id, unfollow_to_user_by_id } = require('../db/users')
+const { add_notification_to_user_by_id } = require('../db/profile')
 const { get_profile } = require('./profile.services')
 
 async function get_user(req){
@@ -117,6 +118,8 @@ async function follow(req) {
         }
     }
 
+    const notification = await add_notification_to_user_by_id(followed_user.data._id, { type: "follow", user: profile.data._id })
+    
     const follow = await follow_to_user_by_id(profile.data._id, followed_user.data._id)
 
     global.Logger.log({
@@ -136,7 +139,7 @@ async function follow(req) {
                 id: follow.data.follower._id,
                 nick_name: follow.data.follower.nick_name,
                 follows: follow.data.follower.follows,
-                followers: follow.data.follower.followers
+                followers: follow.data.follower.followers,
             },
             followed: {
                 id: follow.data.followed._id,
@@ -209,6 +212,8 @@ async function unfollow(req) {
         }
     }
 
+    const notification = await add_notification_to_user_by_id(followed_user.data._id, { type: "unfollow", user: profile.data._id })
+
     const follow = await unfollow_to_user_by_id(profile.data._id, followed_user.data._id)
 
     global.Logger.log({
@@ -228,7 +233,7 @@ async function unfollow(req) {
                 id: follow.data.follower._id,
                 nick_name: follow.data.follower.nick_name,
                 follows: follow.data.follower.follows,
-                followers: follow.data.follower.followers
+                followers: follow.data.follower.followers,
             },
             followed: {
                 id: follow.data.followed._id,

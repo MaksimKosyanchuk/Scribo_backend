@@ -11,7 +11,7 @@ const port = process.env.PORT
 const corsOptions = {
     origin: process.env.FRONTEND_ORIGIN,
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     optionsSuccessStatus: 200,
 };

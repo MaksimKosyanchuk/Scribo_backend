@@ -1,6 +1,7 @@
 const User = require('../models/User')
 const { get_post_by_query } = require('./posts')
 const { get_user_by_query } = require('./users')
+const { Types } = require("mongoose")
 
 async function add_post_to_saved(user_id, post_id) {
     const user = await get_user_by_query({ "_id": user_id }, { with_saved_posts: true })
@@ -89,8 +90,51 @@ async function read_notifications_by_user_id(user_id) {
     }
 }
 
+async function add_notification_to_user_by_id(user_id, notification) {
+    if(!notification || !notification.type || (notification.type != "follow" && notification.type != "unfollow") ) {
+        throw new Error(`Incorrect type of notification!\nnotification: ${JSON.stringify(notification, null, 2)}`)
+    }
+    let user = await get_user_by_query({ "_id": user_id })
+    
+    if(!user.status) {
+        throw new Error(`Failed to find user!\nuser_id: ${user_id}` )
+    }
+
+    const object = {};
+
+    if (notification?.user) {
+        object.user = new Types.ObjectId(notification.user);
+    }
+
+    if (notification?.post) {
+        object.post = new Types.ObjectId(notification.post);
+    }
+
+    if (Object.keys(object).length > 0) {
+        const updated_user = await User.findOneAndUpdate(
+            { _id: user_id },
+            {
+                $push: {
+                    notifications: {
+                        type: notification.type,
+                        ...object
+                    }
+                }
+            },
+            { new: true }
+        );
+
+        return {
+            status: true,
+            message: "Success added notification",
+            data: updated_user
+        }
+    }
+}
+
 module.exports = {
     add_post_to_saved,
     remove_post_from_saved,
-    read_notifications_by_user_id
+    read_notifications_by_user_id,
+    add_notification_to_user_by_id
 }
