@@ -57,6 +57,14 @@ async function field_validation(fields) {
                     errors = push_to_errors(errors, field.source, { type: "description", data: { message: "Description must be less then 60!", data: field.value }})
                 }
                 break
+            case "category":
+                if(field.value && field.value.length > 60) {
+                    errors = push_to_errors(errors, field.source, { type: "category", data: { message: "Post category must be less then 60!", data: field.value }})
+                }
+                if(!field.value || field.value.length < 3) {
+                    errors = push_to_errors(errors, field.source, { type: "category", data: { message: "The post category must be at least 3 characters long!", data: field.value }})
+                }
+                break
             case "password":
                 if(!field.value || field.value.length < 8 || field.value.length > 20) {
                     errors = push_to_errors(errors, field.source, { type: "password", data: { message: "Passowrd must be more then 7 and less then 21!", data: field.value }})
