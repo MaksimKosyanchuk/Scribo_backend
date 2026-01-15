@@ -36,12 +36,13 @@ async function get_post_by_query(query = {}) {
     }
 }
 
-async function create_new_post(title, content_text, author, featured_image=null) {
+async function create_new_post(title, content_text, category, author, featured_image=null) {
     const new_post = await Post.create({
         author: author,
         title: title,
         featured_image: featured_image,
-        content_text: content_text
+        content_text: content_text,
+        category: category
     })
 
     return {
