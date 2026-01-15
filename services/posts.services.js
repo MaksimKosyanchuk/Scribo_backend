@@ -7,7 +7,7 @@ const { get_profile } = require('./profile.services')
 const { ObjectId } = require('mongodb');
 
 async function create_post(req) {
-    params = ["content_text", "title"]
+    params = ["content_text", "title", "category"]
     fields = []
 
     const profile = await get_profile(req)
@@ -72,7 +72,7 @@ async function create_post(req) {
         }
     }
         
-    const post_creating_result = await create_new_post(req.body.title, req.body.content_text, user.data._id, img_url)
+    const post_creating_result = await create_new_post(req.body.title, req.body.content_text, req.body.category, user.data._id, img_url, )
 
     global.Logger.log({
         type: "create_post",
