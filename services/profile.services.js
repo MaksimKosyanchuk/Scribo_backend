@@ -3,6 +3,7 @@ const { field_validation } = require('./utils/validation')
 const { get_user_by_query } = require('../db/users')
 const { add_post_to_saved, remove_post_from_saved, read_notifications_by_user_id } = require('../db/profile')
 const { get_post_by_query } = require('../db/posts')
+const mongoose = require('mongoose');
 
 async function get_profile(req) {
     const token = req.headers['authorization']?.split(' ')[1]
@@ -101,7 +102,7 @@ async function save_post(req) {
         message: `User ${result.data.nick_name} saved post ${req.params.id}`,
         data: {
             user: result.data._id,
-            post_id: req.params.id
+            post_id: new mongoose.Types.ObjectId(req.params.id)
         }
     })
     
