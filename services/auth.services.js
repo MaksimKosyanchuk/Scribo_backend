@@ -34,6 +34,14 @@ async function login(req) {
             status: false,
             message: "User not found!",
             data: null,
+            errors: {
+                body: { 
+                    nick_name: {
+                        message: "User not found!",
+                        data: body.nick_name
+                    }
+                }
+            },
             code: 404
         }
     }
@@ -43,8 +51,16 @@ async function login(req) {
     if(!is_match) {
         return {
             status: false,
-            message: "Incorrect login or password!",
+            message: "Wrong password!",
             data: null,
+            errors: {
+                body: { 
+                    password: {
+                        message: "Wrong password!",
+                        data: body.password
+                    }
+                }
+            },
             code: 401
         }
     }
