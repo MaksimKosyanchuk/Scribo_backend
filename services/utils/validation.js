@@ -1,116 +1,107 @@
-const Post = require('../../models/Post')
 const { get_jwt_token } = require('./jwt')
-const { get_users } = require('../users.services')
+const mongoose = require('mongoose');
 
-async function field_validation(type, value) {
-    switch(type){
-        case "title":
-            if(!value || value.replace(' ', '').length == 0) {
-                return {
-                    is_valid: false,
-                    message: "Title must not be empty",
-                }
-            }
-            break;
-        case "content_text":
-            if(!value || value.replace(' ', '').length == 0) {
-                return {
-                    is_valid: false,
-                    message: "Content length must be more than 0",
-                }
-            }
-            break;
-        case "token":
-            if(!value) {
-                return {
-                    is_valid: false,
-                    message: "Token is empty"
-                }
-            }
-            try{
-                const token_result = await get_jwt_token(value)
-                
-                if(!token_result.status) {
-                    return {
-                        is_valid: false,
-                        message: `Incorrect token`,
-                    }
-                }
-                
-                let user = await get_users({ "_id": token_result.data })
-                
-                if(!user.status) {
-                    return {
-                        is_valid: false,
-                        message: `Incorrect token`,
-                    }
-                }
-            }
-            catch(e) {
-                console.log(e)
-            }
-            break
-        case "post_id":
-            if(!value || value.replace(' ', '').length === 0) {
-                return {
-                    is_valid: false,
-                    message: "Post id is empty or not exists"
-                }
-            }
-            try{
-                const posts = await Post.find({ _id: value })
-                
-                if(!posts) {
-                    return {
-                        is_valid: false,
-                        message: "Incorrect post id"
-                    }
-                }
-            }
-            catch(e) {
-                return {
-                    is_valid: false,
-                    message: "Incorrect post id"
-                }
-            }
-            break
-        case "description":
-            if(!value || value.length > 60) {
-                return {
-                    is_valid: false,
-                    message: "Description must be less then 60",
-                }
-            }
-            break
-        case "password":
-            if(!value || value.length < 8 || value.length > 20) {
-                return {
-                    is_valid: false,
-                    message: "Passowrd must be more then 7 and less then 21!",
-                }
-            }
-            break
-        case "nick_name":
-            if(!value || value.length < 3 || value.length > 20) {
-                return {
-                    is_valid: false,
-                    message: "Nick name must be more then 2 and less then 21!"
-                }
-            }
-            break
-        case "user_id":
-            if(!value || value.replace(" ", "").length === 0) {
-                return {
-                    is_valid: false,
-                    message: "User id must be non empty!"
-                }
-            }
-            break
+function push_to_errors(errors, source, field) {
+    if(!errors[source]) {
+        errors[source] = {}
+    }
+    
+    errors[source][field.type] = field.data
+    
+    return errors
+}
+
+async function field_validation(fields) {
+    let errors = { }
+    if(!fields) {
+        return {
+            status: true,
+            errors: errors
         }
+    }
 
+    for(const field of fields) {
+        switch(field.type){
+            case "title":
+                if(!field.value || field.value.trim().length === 0) {
+                    errors = push_to_errors(errors, field.source, { type: "title", data: { message: "Title is empty!", data: field.value }})   
+                }
+
+                break
+            case "content_text":
+                if(!field.value || field.value.trim().length === 0) {
+                    errors = push_to_errors(errors, field.source, { type: "content_text", data: { message: "Content text is empty!", data: field.value }})   
+                }
+                
+                break
+            case "token":
+                if(!field.value || field.value.trim().length === 0) {
+                    errors = push_to_errors(errors, field.source, { type: "token", data: { message: "Token is empty!", data: field.value }})
+                    break
+                }
+                try{
+                    const token_result = await get_jwt_token(field.value)
+                    
+                    if(!token_result.status) {
+                        errors = push_to_errors(errors, field.source, { type: "token", data: { message: "Incorrect token!", data: field.value }})
+                        break
+                    }
+                }
+                catch(e) {
+                    console.log(e.message)
+                    errors = push_to_errors(errors, field.source, { type: "token", data: { message: "Incorrect token!", data: field.value }})
+                }
+                break
+            case "description":
+                if(field.value && field.value.length > 60) {
+                    errors = push_to_errors(errors, field.source, { type: "description", data: { message: "Description must be less then 60!", data: field.value }})
+                }
+                break
+            case "password":
+                if(!field.value || field.value.length < 8 || field.value.length > 20) {
+                    errors = push_to_errors(errors, field.source, { type: "password", data: { message: "Passowrd must be more then 7 and less then 21!", data: field.value }})
+                }
+                break
+            case "nick_name":
+                if(!field.value || field.value.length < 3 || field.value.length > 20) {
+                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Nick name must be more then 2 and less then 21!", data: field.value }})
+                }
+                break
+            case "_id":
+                if(!field.value || field.value.toString().trim().length === 0) {
+                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Id must be non empty!", data: field.value }})
+                }
+                else {
+                    if (!mongoose.Types.ObjectId.isValid(field.value)) {
+                        errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Incorrect type!", data: field.value }})
+                    }
+                }
+                break
+            case "id":
+                if(!field.value || field.value.trim().length === 0) {
+                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Id must be non empty!", data: field.value }})
+                }
+                else {
+                    if (!mongoose.Types.ObjectId.isValid(field.value)) {
+                        errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Incorrect type!", data: field.value }})
+                    }
+                }
+                break
+            case "author":
+                if(!field.value || field.value.trim().length === 0) {
+                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Id must be non empty!", data: field.value }})
+                }
+                else {
+                    if (!mongoose.Types.ObjectId.isValid(field.value)) {
+                        errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Incorrect type!", data: field.value }})
+                    }
+                }
+                break
+        }
+    }
     return {
-        is_valid: true,
-        message: "Success"
+        status: Object.keys(errors).length === 0,
+        errors: errors
     }
 }
 

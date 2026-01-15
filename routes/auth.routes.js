@@ -16,62 +16,50 @@ router.options('/register', (req, res) => {
 
 router.post('/login', async (req, res) => {
     try {
-        const result = await login(req.body) 
+        const result = await login(req) 
         
-        const result_data = {
-            status: result.status ? 'success' : 'error',
-            message: result.message,
-            data: result.data,
-            errors: result.errors
-        }
+        res.status(result.code)
 
-        if(result.status) {
-            global.Logger.log(`User '${ result.data.user.nick_name }': success logined from ${ req.ip }`, result.data)
-        }
+        delete result.code
 
-        res.status(200).json(result_data)
+        res.json(result)
     }
     catch(e) {
+        console.log(e)
+
         const result_data = {
-            status: "error",
-            message: e.message, 
+            status: false,
+            message: "Internal server error", 
             data: null
         }
-
-        global.Logger.log(`Login exception`, { message: e.message })
 
         res.status(500).json(result_data)
     }
 })
 
-router.post('/register', upload.single('avatar'), async (req, res) => {
+router.post('/register', (req, res) => {
+    upload.single('avatar')(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+        req.file = null
+    }
     try {
-        const result = await register(req.body, req.file)
+        const result = await register(req)
+
+        res.status(result.code)
+
+        delete result.code
         
-        const result_data = {
-            status: result.status ? 'success' : 'error',
-            message: result.message,
-            errors: result.errors,
-            data: result.data
-        }
+        res.json(result)
+    } catch (e) {
+        console.log(e)
 
-        if(result.status) {
-            global.Logger.log(`User '${ result.data.nick_name }' success register from ${ req.ip }`, result.data)
-        }
-
-        res.status(200).json(result_data)
-    }
-    catch (e) {
-        const result_data = {
-            status: "error",
-            message: e.message,
+        res.status(500).json({
+            status: false,
+            message: 'Internal server error!',
             data: null
-        }
-
-        global.Logger.log(`Register exception`, { message: e.message })
-
-        res.status(500).json(result_data)
+        })
     }
+    })
 })
 
 module.exports = router

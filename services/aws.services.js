@@ -1,8 +1,11 @@
 const AWS = require('aws-sdk');
 const path = require('path');
+const url = require('url');
 
 const UPLOAD_LIMIT_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
+
+process.env.AWS_SDK_JS_SUPPRESS_MAINTENANCE_MODE_MESSAGE = '1';
 
 AWS.config.update({
     accessKeyId: process.env.AWS_CONNECT_ACCESS_KEY,
@@ -14,10 +17,17 @@ const s3 = new AWS.S3();
 
 async function aws_configure() {
     try {
-        const data = await s3.listBuckets().promise();
-        console.log('AWS Buckets:', data.Buckets.map(b => b.Name));
+        await s3.headBucket({ Bucket: process.env.AWS_CONNECT_BUCKET_NAME }).promise();
+        console.log(`Success configured aws, bucket: ${process.env.AWS_CONNECT_BUCKET_NAME}`);
     } catch (err) {
-        global.Logger.log("Ошибка при подключении к AWS:", { message: err });
+        global.Logger.log({
+            type: "error",
+            message: "Error to configure aws",
+            data: { 
+                error: err
+            }
+        });
+        throw err
     }
 }
 
@@ -56,21 +66,21 @@ async function upload_image(file, type, file_name) {
 
     if (errors.length > 0) {
         return {
-        status: false,
-        message: "Validation errors",
-        errors,
+            status: false,
+            message: "Validation errors",
+            errors,
         };
     }
 
     const fileExtension = path.extname(file.originalname).toLowerCase();
-    const key = `src/${type}/${safeFileName}${fileExtension}`;
+    const key = `src/${type}/${file_name}${fileExtension}`;
 
     try {
         const params = {
-        Bucket: process.env.AWS_CONNECT_BUCKET_NAME,
-        Key: key,
-        Body: file.buffer,
-        ContentType: file.mimetype,
+            Bucket: process.env.AWS_CONNECT_BUCKET_NAME,
+            Key: key,
+            Body: file.buffer,
+            ContentType: file.mimetype,
         };
 
         const result = await s3.putObject(params).promise();
@@ -80,7 +90,7 @@ async function upload_image(file, type, file_name) {
                 status: true,
                 message: "Successfully uploaded",
                 data: {
-                url: `https://${process.env.AWS_CONNECT_BUCKET_NAME}.s3.${process.env.AWS_CONNECT_REGION}.amazonaws.com/${key}`,
+                    url: `https://${process.env.AWS_CONNECT_BUCKET_NAME}.s3.${process.env.AWS_CONNECT_REGION}.amazonaws.com/${key}`,
                 },
             };
         } else {
@@ -91,18 +101,43 @@ async function upload_image(file, type, file_name) {
             };
         }
     } catch (e) {
-        global.Logger.log("AWS upload error:", e);
+        global.Logger.log({
+            type: "error",
+            message: "Error to upload image to aws!",
+            data: { 
+                file: file,
+                type: type,
+                file_name: file_name,
+                error: e
+            }
+        });
 
-        return {
-            status: false,
-            message: e.message || 'Unknown error occurred during upload',
-            data: null,
-        };
+        throw e
+    }
+}
+
+async function delete_file(url_file) {
+    try {
+        const parsedUrl = url.parse(url_file);
+        const key = decodeURIComponent(parsedUrl.pathname).slice(1);
+        
+        const params = {
+            Bucket: process.env.AWS_CONNECT_BUCKET_NAME,
+            Key: key
+        }
+
+        await s3.deleteObject(params).promise();
+
+        return true;
+
+    } catch (error) {
+        console.error('Failed to delete file:', error);
+        return false;
     }
 }
 
 module.exports = {
     upload_image,
     aws_configure,
-    s3,
+    delete_file
 };

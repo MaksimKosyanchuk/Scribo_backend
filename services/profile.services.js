@@ -1,361 +1,234 @@
 const { get_jwt_token } = require('./utils/jwt')
-const { get_users } = require('./users.services')
 const { field_validation } = require('./utils/validation')
-const { get_posts } = require('./posts.services')
-const User = require('../models/User')
-const mongoose = require('mongoose');
+const { get_user_by_query } = require('../db/users')
+const { add_post_to_saved, remove_post_from_saved, read_notifications_by_user_id } = require('../db/profile')
+const { get_post_by_query } = require('../db/posts')
 
-async function get_profile(body, with_saved_posts=true) {
-    const result = await field_validation("token", body.token)
+async function get_profile(req) {
+    const token = req.headers['authorization']?.split(' ')[1]
 
-    if(!result.is_valid) {
+    const validation = await field_validation([{ type: "token", value: token, source: "Authorization" }]) 
+
+    if(!validation.status) {
         return {
             status: false,
-            message: "Some errors in your fields",
-            errors: {
-                "token": result.message
-            }
+            message: "Unauthorized!",
+            data: null,
+            errors: validation.errors,
+            code: 401
         }
     }
 
-    const token_result = await get_jwt_token(body.token)
-    const user = await get_users({ '_id': token_result.data }, { with_saved_posts: with_saved_posts })
+    const user_id = (await get_jwt_token(req.headers['authorization']?.split(' ')[1])).data
+    const user = await get_user_by_query({ '_id': user_id }, { with_saved_posts: true, with_notifications: true })
+
+    if(!user.status) {
+        return {
+            status: false,
+            message: "Unauthorized!",
+            data: null,
+            code: 401
+        }
+    }
+
+    return {
+        status: true,
+        message: "Success authorized",
+        data: user.data,
+        code: 200
+    }
+}
+
+async function save_post(req) {
+    const token = req?.headers?.authorization?.split(' ')?.[1]
+    
+    fields = [
+        {
+            type: "token",
+            value: token,
+            source: "Authorization"
+        },
+        {
+            type: "_id",
+            value: req.params.id,
+            source: "params"
+        }
+    ]
+    
+    const validation = await field_validation(fields)
+
+    if(!validation.status) {
+        return {
+            status: false, 
+            message: "Some errors in your fields",
+            data: null,
+            errors: validation.errors,
+            code: validation.errors.authorization ? 401 : 400
+        }
+    }
+
+    const user = await get_user_by_query({ "_id": (await get_jwt_token(token)).data }, { with_saved_posts: true })
+
+    if(!user.status) {
+        return {
+            ...user,
+            code: 401
+        }
+    }
+
+    if(!(await get_post_by_query({ "_id": req.params.id })).status) {
+        return {
+            status: false,
+            message: "Post not found!",
+            data: null,
+            code: 404
+        }
+    }
+
+    if(user.data.saved_posts.some((p) => String(p) === req.params.id )) {
+        return {
+            status: false,
+            message: "Post is already in saved posts!",
+            data: null,
+            code: 409
+        }    
+    }
+
+    const result =  await add_post_to_saved(user.data._id, req.params.id) 
+
+    global.Logger.log({
+        type: "save_post",
+        message: `User ${result.data.nick_name} saved post ${req.params.id}`,
+        data: {
+            user: result.data._id,
+            post_id: req.params.id
+        }
+    })
     
     return {
         status: true,
-        message: "",
-        data: user.data[0]
+        message: "Success saved post",
+        data: {
+            saved_posts: result.data.saved_posts
+        },
+        code: 200
     }
 }
 
-async function __save_post(user, post) {
-    try {
-        const result = await User.findOneAndUpdate(
-            { _id: user._id },
-            { $push: { saved_posts: post._id }});
+async function unsave_post(req) {
+    const token = req?.headers?.authorization?.split(' ')?.[1]
+    fields = [
+        {
+            type: "token",
+            value: token,
+            source: "Authorization"
+        },
+        {
+            type: "_id",
+            value: req.params.id,
+            source: "params"
+        }
+    ]
+    
+    const validation = await field_validation(fields)
 
+    if(!validation.status) {
         return {
-            status: true,
-            message: "Post has been saved",
-            data: { user: user, post: post }
+            status: false, 
+            message: "Some errors in your fields",
+            data: null,
+            errors: validation.errors,
+            code: validation.errors.authorization ? 401 : 400
         }
-    } catch (error) {
+    }
+
+    const user = await get_user_by_query({ "_id": (await get_jwt_token(token)).data }, { with_saved_posts: true })
+
+    if(!user.status) {
         return {
-            status: false,
-            message: "Failed to save post: " + error,
-            data: { user: user, post: post }
-        };
-    }
-    
-}
-
-async function __unsave_post(user, post) {
-    try {
-        const result = await User.findOneAndUpdate(
-            { _id: user._id },
-            { $pull: { saved_posts: post._id }});
-
-        return {
-            status: true,
-            message: "Post has been unsaved",
-            data: { user: user, post: post }
-        }
-    }
-    catch (error) {
-        return {
-            status: false,
-            message: "Failed to unsave post: " + error,
-            data: { user: user, post: post }
-        };
-    }
-}
-
-async function save_post(body) {
-    const user = await get_profile(body)
-    
-    const validation = await field_validation("post_id", body.post_id)
-    
-    if(!validation.is_valid) {
-        if(!user.errors) {
-            user.errors = {}
-        }
-        user.errors.post_id = validation.message
-    }
-    
-    if(user.errors) {
-        return { 
-            status: false,
-            message: "Some errors in your fields!",
-            errors: user.errors
+            ...user,
+            code: 401
         }
     }
 
-    const posts = await get_posts(query = { "_id": body.post_id })
-
-    const post = posts.data[0]
-    const result = user.data.saved_posts.some(savedPost => savedPost.equals(post._id))  ? await __unsave_post(user.data, post) : await __save_post(user.data, post)
-    
-    return result
-}
-
-async function follow(body) {
-    let profile = await get_profile(body)
-    let errors = {}
-
-    if(!profile.status) {
-        errors = profile.errors
-    }
-
-    const id_validation_result = await field_validation("user_id", body.user_id)
-    const nick_name_validation_result = await field_validation("nick_name", body.nick_name)
-    
-    let followed_user = null
-
-    if(!id_validation_result.is_valid && !nick_name_validation_result.is_valid) {
-        errors["user_id"] = id_validation_result.message
-        errors["nick_name"] = nick_name_validation_result.message
-    }
-
-    else {
-        let followed_user_by_id = null;
-        let followed_user_by_nick_name = null;
-
-        if (nick_name_validation_result.is_valid) {
-            followed_user_by_nick_name = await User.findOne({ "nick_name": body.nick_name });
-        }
-
-        try {
-            if (id_validation_result.is_valid) {
-                followed_user_by_id = await User.findOne({ "_id": new mongoose.Types.ObjectId(body.user_id) });
-            }
-        } catch (e) {
-            followed_user_by_id = null;
-        }
-
-        if (followed_user_by_nick_name) {
-            followed_user = followed_user_by_nick_name.toObject();
-        } 
-        else if (followed_user_by_id) {
-            followed_user = followed_user_by_id.toObject();
-        } 
-        else {
-            if (nick_name_validation_result.is_valid) {
-                errors["nick_name"] = "User not found!";
-            }
-            if (id_validation_result.is_valid) {
-                errors["user_id"] = "User not found!";
-            }
-        }
-
-    }
-    
-    if(Object.keys(errors).length === 0) {
-        if(profile.data._id.equals(followed_user._id)) {
-            errors["user_id/nick_name"] = "U cacanot follow your self!"
-        }
-    }
-
-    if(Object.keys(errors).length === 0) {
-        if(profile.data.follows.some(item => item._id.equals(followed_user._id))) {
-            errors["user_id/nick_name"] = "U are already following this user!"
-        }
-    }
-    
-    if(Object.keys(errors).length > 0) {
-        return { 
-            status: false,
-            message: "Some errors in your fields!",
-            errors: errors
-        }
-    }
-    
-    try {
-        await User.findOneAndUpdate(
-            { _id: followed_user._id },
-            {
-                $push: {
-                    followers: profile.data._id,
-                    notifications: {
-                        type: "follow",
-                        user: profile.data._id
-                    }
-                }
-            }
-        );
-        
-        await User.findOneAndUpdate(
-            { _id: profile.data._id },
-            {
-                $push: {
-                    follows: followed_user._id
-                }
-            }
-        );
-
-        profile.data.follows.push(followed_user._id)
-        followed_user.followers.push(profile.data._id)
-
-        return {
-            status: true,
-            message: "Success followed",
-            data: { follower: profile.data, followed: followed_user }
-        }
-    } catch (error) {
+    if(!(await get_post_by_query({ "_id": req.params.id })).status) {
         return {
             status: false,
-            message: "Failed to follow",
-            data: { message: error.message }
-        };
+            message: "Post not found!",
+            data: null,
+            code: 404
+        }
+    }
+
+    if(!user.data.saved_posts.some((p) => String(p) === req.params.id )) {
+        return {
+            status: false,
+            message: "Post is not in saved posts!",
+            data: null,
+            code: 409
+        }
+    }
+
+    const result = await remove_post_from_saved(user.data._id, req.params.id)
+
+    global.Logger.log({ 
+        type: "unsave_post",
+        message: `User ${result.data.nick_name} unsaved post ${req.params.id}`,
+        data: {
+            user: result.data._id,
+            post_id: req.params.id
+        }
+    })
+
+    return {
+        status: true,
+        message: "Success unsaved post",
+        data: {
+            saved_posts: result.data.saved_posts
+        },
+        code: 200
     }
 }
 
-async function unfollow(body) {
-    let profile = await get_profile(body)
-    let errors = {}
-
-    if(!profile.status) {
-        errors = profile.errors
-    }
-
-    const id_validation_result = await field_validation("user_id", body.user_id)
-    const nick_name_validation_result = await field_validation("nick_name", body.nick_name)
-
-    let followed_user = null
-
-    if(!id_validation_result.is_valid && !nick_name_validation_result.is_valid) {
-        errors["user_id"] = id_validation_result.message
-        errors["nick_name"] = nick_name_validation_result.message
-    } else {
-        let followed_user_by_id = null;
-        let followed_user_by_nick_name = null;
-
-        try {
-            if (id_validation_result.is_valid) {
-                followed_user_by_id = await User.findOne({ "_id": new mongoose.Types.ObjectId(body.user_id) });
-            }
-        } catch (e) {
-            followed_user_by_id = null;
-        }
-
-        if (nick_name_validation_result.is_valid) {
-            followed_user_by_nick_name = await User.findOne({ "nick_name": body.nick_name });
-        }
-
-        if (followed_user_by_nick_name) {
-            followed_user = followed_user_by_nick_name.toObject();
-        } else if (followed_user_by_id) {
-            followed_user = followed_user_by_id.toObject();
-        } else {
-            if (nick_name_validation_result.is_valid) {
-                errors["nick_name"] = "User not found!";
-            }
-            if (id_validation_result.is_valid) {
-                errors["user_id"] = "User not found!";
-            }
-        }
-    }
-
-    if(Object.keys(errors).length === 0) {
-        if(profile.data._id.equals(followed_user._id)) {
-            errors["user_id/nick_name"] = "You cannot unfollow yourself!"
-        }
-    }
-
-    if(Object.keys(errors).length === 0) {
-        if(!profile.data.follows.some(item => item._id.equals(followed_user._id))) {
-            errors["user_id/nick_name"] = "You are not following this user!"
-        }
-    }
-
-    if(Object.keys(errors).length > 0) {
-        return { 
-            status: false,
-            message: "Some errors in your fields!",
-            errors: errors
-        }
-    }
-
-    try {
-        await User.findOneAndUpdate(
-            { _id: followed_user._id },
-            {
-                $pull: {
-                    followers: profile.data._id
-                },
-                $push: {
-                    notifications: {
-                        type: "unfollow",
-                        user: profile.data._id
-                    }
-                }
-            }
-        );
-
-        await User.findOneAndUpdate(
-            { _id: profile.data._id },
-            { $pull: { follows: followed_user._id }});
-
-        profile.data.follows = profile.data.follows.filter(item => !item._id.equals(followed_user._id));
-        followed_user.followers = followed_user.followers.filter(item => !item._id.equals(profile.data._id));
-
-        return {
-            status: true,
-            message: "Success unfollowed",
-            data: { follower: profile.data, followed: followed_user }
-        }
-    } catch (error) {
+async function read_notifications(req) {
+    const validation = await field_validation([{ type: "token", value: req.headers['authorization']?.split(' ')[1], source: "Authorization" }]) 
+    
+    if(!validation.status) {
         return {
             status: false,
-            message: "Failed to unfollow",
-            data: { message: error.message }
-        };
-    }
-}
-
-async function read_notifications(body) {
-    try{
-        const user = await get_profile(body)
-        if(!user.status) {
-            return {
-                status: false,
-                message: "Failed to read notifications",
-                errors: user.errors
-            };
-        }
-
-        await User.findOneAndUpdate(
-            { _id: user.data._id },
-            {
-                $set: {
-                    'notifications.$[].is_read': true
-                }
-            }
-        );
-
-        return {
-            status: true,
-            message: "Success readed all notifications",
-            data: {
-                ...user.data,
-                notifications: user.data.notifications.map((item) => {
-                    return { ...item, is_read: true };
-                })
-            }
+            message: "Some errors in your fields",
+            data: null,
+            errors: validation.errors,
+            code: 401
         }
     }
-    catch(error) {
+
+    const user = await get_user_by_query({ '_id': (await get_jwt_token(req.headers['authorization']?.split(' ')[1])).data }, { with_notifications: true })
+    
+    if(!user.status) {
         return {
             status: false,
-            message: "Failed to read notifications",
-            data: { message: error.message }
-        };
-    }        
-}
+            message: "Unauthorized",
+            data: null,
+            code: 401
+        }
+    }
+
+    const result = await read_notifications_by_user_id(user.data._id)
+
+    return {
+        status: true,
+        message: "Success readed all notifications",
+        data: { 
+            notifications: result.data.notifications
+        },
+        code: 200
+    }
+}     
 
 module.exports = {
     get_profile,
     save_post, 
-    follow,
-    unfollow,
+    unsave_post,
     read_notifications
 }

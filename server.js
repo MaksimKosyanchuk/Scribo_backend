@@ -4,19 +4,18 @@ const mongoose = require('mongoose')
 const app = express()
 require('dotenv').config()
 const Logger = require('./services/log')
-const { aws_configure } = require('./services/upload.services')
+const { aws_configure } = require('./services/aws.services')
 
 const port = process.env.PORT
 
 const corsOptions = {
     origin: process.env.FRONTEND_ORIGIN,
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     optionsSuccessStatus: 200,
 };
 
-console.log(corsOptions)
 app.use(cors(corsOptions))
 app.use(express.json({ extended: true }))
 
@@ -29,15 +28,15 @@ app.use('/', require('./routes/default.routes'))
 
 const start = async () => {
     try {
+        console.log("")
         global.Logger = new Logger()
-        aws_configure()
-        console.log("logger is initialized")
+        await aws_configure()
+        console.log("Global logger is initialized\n")
         await mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.lccalb5.mongodb.net/?retryWrites=true&w=majority`)
         app.listen(port, () => {} )
     }
     catch (e) { 
-        global.Logger.log(e.message)
-        global.Logger.Log("Ending program")
+        console.log(e)
         process.exit(1)
     }
 }

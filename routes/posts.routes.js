@@ -1,90 +1,95 @@
 const { Router } = require('express')
-const { create_post, get_posts } = require('../services/posts.services')
+const { create_post, get_posts, get_post_by_id, delete_post } = require('../services/posts.services')
 const router = Router()
 const multer = require('multer');
 
 const upload = multer({
     limits: { fieldSize: 25 * 1024 * 1024 }
-  })
+})
 
 router.get('/', async (req, res) => {
     try {
-        const posts = await get_posts(req.query)
+        const posts = await get_posts(req)
 
-        const result_data = {
-            status: posts.status ? 'success' : 'error',
-            message: posts.message,
-            data: posts.data
-        }
+        res.status(posts.code)
 
-        res.status(200).json(result_data)
+        delete posts.code
+
+        res.json(posts)
     }
     catch (e) {
-        const result_data = {
-            status: "error",
-            message: e.message,
+        console.log(e)
+
+        res.status(500).json({
+            status: false,
+            message: "Internal server error",
             data: null
-        }
-
-        global.Logger.log(`Get post exception`, { message: e.message })
-
-        res.status(500).json(result_data)
+        })
     }
 })
 
 router.get('/:id', async (req, res) => {
     try {
-        const posts = await get_posts({ "_id": req.params.id })
+        const posts = await get_post_by_id(req)
         
-        const result_data = {
-            status: posts.status ? 'success' : 'error',
-            message: posts.message,
-            data: posts.data ? posts.data[0] : null
-        }
+        res.status(posts.code)
 
-        res.status(200).json(result_data)
+        delete posts.code
+
+        res.json(posts)
     }
     catch(e) {
-        const result_data = {
-            status: "error",
-            message: e.message,
+        console.log(e)
+
+        res.status(500).json({
+            status: false,
+            message: "Internal server error",
             data: null
-        }
-
-        global.Logger.log(`Get post exception`, { message: e.message })
-
-        res.status(500).json(result_data)
+        })
     }
 })
 
-router.post('/create-post', upload.single('featured_image'), async (req, res) => {
+router.post('/', upload.single('featured_image'), async (req, res) => {
     try {
-        const result = await create_post(req.body, req.file)
+        const result = await create_post(req)
 
-        const result_data = {
-            status: result.status ? 'success' : 'error',
-            message: result.message,
-            data: result.data,
-            errors: result.errors
-        }
+        res.status(result.code)
 
-        if(result.status) {
-            global.Logger.log(`User ${ result_data.data.user.nick_name } created post`, result.data)
-        }
-
-        res.status(200).json(result_data)
+        delete result.code
+        
+        res.json(result) 
 
     } catch (e) {
         console.log(e)
-        const result_data = {
-            status: "error",
-            message: e.message,
+
+        res.status(500).json({
+            status: false,
+            message: "Internal server error",
             data: null
-        }
+        })
+    }
+})
 
-        global.Logger.log(`Create post exception`, { message: e.message })
+router.delete('/:id', async (req, res) => {
+    try {
+        const result = await delete_post(req)
 
-        res.status(500).json(result_data)
+        res.status(result.code)
+
+        delete result.code
+
+        res.json(result)
+
+    } catch (e) {
+        console.log(e.message)
+
+        res.status(500).json(
+            {
+                status: false,
+                message: "Internal server error",
+                data: null
+            }
+        )
     }
 })
 
