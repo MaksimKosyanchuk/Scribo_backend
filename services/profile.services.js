@@ -177,7 +177,7 @@ async function unsave_post(req) {
         message: `User ${result.data.nick_name} unsaved post ${req.params.id}`,
         data: {
             user: result.data._id,
-            post_id: req.params.id
+            post_id: new mongoose.Types.ObjectId(req.params.id)
         }
     })
 
