@@ -35,11 +35,11 @@ function image_validation(img) {
     const errors = [];
 
     if (!ALLOWED_MIME_TYPES.includes(img.mimetype)) {
-        errors.push('Incorrect file type, only images (jpeg, png, gif, webp) are allowed.');
+        errors.push('Incorrect file type, only images (jpeg, png, gif, webp) are allowed!');
     }
 
     if (img.size > UPLOAD_LIMIT_SIZE) {
-        errors.push(`Max size of image should be ${UPLOAD_LIMIT_SIZE / 1024 / 1024} MB.`);
+        errors.push(`Max size of image should be ${UPLOAD_LIMIT_SIZE / 1024 / 1024} MB!`);
     }
 
     return errors;
@@ -72,7 +72,6 @@ async function upload_image(file, type, file_name) {
         };
     }
 
-    const fileExtension = path.extname(file.originalname).toLowerCase();
     const key = `src/${type}/${file_name}${fileExtension}`;
 
     try {
