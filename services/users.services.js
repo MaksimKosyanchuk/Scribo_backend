@@ -5,7 +5,7 @@ const { add_notification_to_user_by_id } = require('../db/profile')
 const { get_profile } = require('./profile.services')
 
 async function get_user(req){
-    const validation = await field_validation([ { type: "nick_name", value: req.params.nick_name, source: "Params" } ])
+    const validation = await field_validation([ { type: "nick_name", value: req.params.nick_name, source: "params" } ])
 
     if(!validation.status) {
         return {
@@ -83,7 +83,7 @@ async function follow(req) {
             message: "Some errors in your fields!",
             data: null,
             errors: validation.errors,
-            code: 401
+            code: validation.errors["Authorization"] ? 401 : 400
         }
     }
     
@@ -194,19 +194,19 @@ async function unfollow(req) {
         }
     }
     
-    if(!profile.data.follows.some(item => item._id.equals(followed_user.data._id))) {
+    if(profile.data._id.equals(followed_user.data._id)) {
         return {
             status: false,
-            message: "You are not following this user!",
+            message: "You cannot unfollow yourself!",
             data: null,
             code: 409
         }
     }
 
-    if(profile.data._id.equals(followed_user.data._id)) {
+    if(!profile.data.follows.some(item => item._id.equals(followed_user.data._id))) {
         return {
             status: false,
-            message: "You cannot unfollow yourself!",
+            message: "You are not following this user!",
             data: null,
             code: 409
         }
