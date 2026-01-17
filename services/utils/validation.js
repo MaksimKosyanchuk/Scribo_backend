@@ -115,12 +115,12 @@ async function field_validation(fields) {
                 }
                 break
             case "is_verified":
-                if(!isBooleanValue(field.type)) {
+                if(!isBooleanValue(field.value)) {
                     errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Field is_verified should be boolean!", data: field.value }})
                 }
                 break
             case "is_admin":
-                if(!isBooleanValue(field.type)) {
+                if(!isBooleanValue(field.value)) {
                     errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Field is_verified should be boolean!", data: field.value }})
                 }
                 break
