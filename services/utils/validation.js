@@ -21,6 +21,15 @@ async function field_validation(fields) {
     }
 
     for(const field of fields) {
+        const isBooleanValue = v =>
+            v === true ||
+            v === false ||
+            v === "true" ||
+            v === "false" ||
+            v === 1 ||
+            v === 0 ||
+            v === "1" ||
+            v === "0";
         switch(field.type){
             case "title":
                 if(!field.value || field.value.trim().length === 0) {
@@ -103,6 +112,16 @@ async function field_validation(fields) {
                     if (!mongoose.Types.ObjectId.isValid(field.value)) {
                         errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Incorrect type!", data: field.value }})
                     }
+                }
+                break
+            case "is_verified":
+                if(!isBooleanValue(field.type)) {
+                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Field is_verified should be boolean!", data: field.value }})
+                }
+                break
+            case "is_admin":
+                if(!isBooleanValue(field.type)) {
+                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Field is_verified should be boolean!", data: field.value }})
                 }
                 break
         }
