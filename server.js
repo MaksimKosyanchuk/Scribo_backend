@@ -36,7 +36,7 @@ const start = async () => {
         app.listen(port, () => {} )
     }
     catch (e) { 
-        console.log(e)
+        console.log()
         process.exit(1)
     }
 }
