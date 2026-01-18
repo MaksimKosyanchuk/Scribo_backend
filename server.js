@@ -8,13 +8,29 @@ const { aws_configure } = require('./services/aws.services')
 
 const port = process.env.PORT
 
+const allowedOrigins = [
+    process.env.FRONTEND_ORIGIN,
+    process.env.FRONTEND_ORIGIN_DEV
+]
+
 const corsOptions = {
-    origin: process.env.FRONTEND_ORIGIN,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    optionsSuccessStatus: 200,
-};
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true)
+
+    if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app')
+    ) {
+        return callback(null, true)
+    }
+
+    callback(new Error(`CORS blocked for origin: ${origin}`))
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
+}
 
 app.use(cors(corsOptions))
 app.use(express.json({ extended: true }))
