@@ -1,52 +1,72 @@
-# Server for posts blog site
+# Scribo Backend — Blog API Server
 
-Api server for blog site, working with MongoDB
+REST API server for the Scribo blog platform, built with Node.js and MongoDB.  
+Provides authentication, post management, user interaction, and media storage.
 
-## Install and run
-### Clone repository 
+## Features
+
+- User authentication (JWT)
+- CRUD operations for posts
+- MongoDB integration
+- AWS S3 file storage
+- RESTful API
+- Environment-based configuration
+
+## Installation & Running
+
+### Clone the repository
 ```bash
-git clone https://github.com/MaksimKosyanchuk/Scribo_backend
+git clone https://github.com/MaksimKosyanchuk/Scribo_backend.git
 ```
-### Install requirements
+
+### Install dependencies
 ```bash
-cd {repo-name}
+cd Scribo_backend
 npm install
 ```
-### Database settings
-Rename ***.env.sample*** to ***.env*** and set
-`DB_PASSWORD`
-`DB_USER`
-`DB_NAME`
-`JWTKEY`
-`PASSWORD_SALT`
-`PORT`
-`AWS_CONNECT_ACCESS_KEY`
-`AWS_CONNECT_SECRET_ACCESS_KEY`
-`AWS_CONNECT_REGION`
-`AWS_CONNECT_BUCKET_NAME` 
-variables
-### Run server
+
+### Environment variables
+Rename `.env.sample` to `.env` and set the following variables:
+
+```env
+DB_USER=
+DB_PASSWORD=
+DB_NAME=
+
+JWTKEY=
+PASSWORD_SALT=
+
+PORT=
+
+AWS_CONNECT_ACCESS_KEY=
+AWS_CONNECT_SECRET_ACCESS_KEY=
+AWS_CONNECT_REGION=
+AWS_CONNECT_BUCKET_NAME=
+```
+
+### Run the server
 ```bash
 npm run start
 ```
 
-## Fetches
-### Send all requests along the path `{link}/api/`
-|Request|Type|Requirements parameters|Optional parameters|Return data|
-|:------|:--:|:----------------------|:------------------|:----------|
-|/auth/login|POST|Body: `nick_name` `password`| |{<br>&nbsp;&nbsp;&nbsp;&nbsp;"user_id": `user_id`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"token": `token`<br>}|
-|/auth/register|POST|Body: `nick_name` `password`|Body: `avatar`|`null`|
-|/posts|GET| |Heads: `filter query`|[<br>&nbsp;&nbsp;&nbsp;&nbsp;{<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"_id": `_id`,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"author": `author`,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"title": `title`,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"featured_image": `featured_image`,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"content_text": `content_text`,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"created_date": `created_date`<br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>]|
-|/posts/create-post|POST|Body: `token` `title` `content_text`|Body: `featured_image`|{<br>&nbsp;&nbsp;&nbsp;&nbsp;"token": `token`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"title": `title`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"content_text": `content_text`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"testfeatured_image: `featured_image`<br>}|
-|/profile|POST|Body: `token`||{<br>&nbsp;&nbsp;&nbsp;&nbsp;"_id": `id`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"nick_name": `nick_name`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"avatar": `avatar`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"created_date": `created_date`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"is_admin": `is_admin`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"is_verified": `is_verified`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"saved_posts": `saved_posts`<br>}|
-|/profile/save-post|POST|Body: `token` `post_id`||{<br>&nbsp;&nbsp;&nbsp;&nbsp;"_id": `id`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"author": `author`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"title": `title`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"featured_image": `featured_image`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"content_text": `content_text`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"created_date": `created_date`<br>}|
-|/users/`nick_name`|GET|||{<br>&nbsp;&nbsp;&nbsp;&nbsp;"_id": `_id`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"nick_name": `nick_name`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"avatar": `avatar`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"created_date": `created_date`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"is_admin": `is_admin`,<br>&nbsp;&nbsp;&nbsp;&nbsp;"is_verified": `is_verified`<br>}|
+The server will start on the port specified in the `.env` file.
 
-## Links
-- [Set request](https://scribo-backend.vercel.app/)
+## API Documentation
 
----
+- [API Documentation](https://scribo-blog.vercel.app/api)
 
+## Related Links
+
+- [Frontend](https://scribo-blog.vercel.app)
 - [GitHub](https://github.com/MaksimKosyanchuk)
 - [Telegram](https://t.me/maks_k0s)
 - [Twitter](https://twitter.com/maks_k0s)
+
+## Tech Stack
+
+- Node.js
+- Express.js
+- MongoDB (Mongoose)
+- JWT
+- AWS S3
+- dotenv
