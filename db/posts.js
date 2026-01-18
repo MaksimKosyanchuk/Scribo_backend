@@ -24,7 +24,7 @@ async function get_post_by_query(query = {}) {
     if (!post) {
         return {
             status: false,
-            message: "Post was not found",
+            message: "Post not found!",
             data: null
         }
     }

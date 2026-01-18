@@ -92,7 +92,7 @@ async function field_validation(fields) {
                 break
             case "nick_name":
                 if(!field.value || field.value.length < 3) {
-                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Nick name must be longer than 21 characters!", data: field.value }})
+                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Nick name must be longer than 3 characters!", data: field.value }})
                     break
                 }
                 if(field.value.length > 20) {

@@ -52,23 +52,26 @@ async function create_post(req) {
     var img_url = null
 
     if(req.file) {
-        const image_upload_result = await upload_image(req.file, "featured_image", Date.now().toString())
-        
-        if(!image_upload_result.status) {
-            return {
-                status: false,
-                message: `Error to upload image: ${image_upload_result.message}`,
-                data: null,
-                errors: {
-                    file: {
-                        "featured_image": image_upload_result.errors
-                    }
-                },
-                code: 400
+        if(req.file.size !== 0){
+
+            const image_upload_result = await upload_image(req.file, "featured_image", Date.now().toString())
+            
+            if(!image_upload_result.status) {
+                return {
+                    status: false,
+                    message: `Error to upload image: ${image_upload_result.message}`,
+                    data: null,
+                    errors: {
+                        file: {
+                            "featured_image": image_upload_result.errors
+                        }
+                    },
+                    code: 400
+                }
             }
-        }
-        else {
-            img_url = image_upload_result.data.url
+            else {
+                img_url = image_upload_result.data.url
+            }
         }
     }
         
