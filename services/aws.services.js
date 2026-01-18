@@ -72,6 +72,7 @@ async function upload_image(file, type, file_name) {
         };
     }
 
+    const fileExtension = path.extname(file.originalname).toLowerCase();
     const key = `src/${type}/${file_name}${fileExtension}`;
 
     try {
