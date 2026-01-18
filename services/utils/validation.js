@@ -63,7 +63,7 @@ async function field_validation(fields) {
                     }
                 }
                 catch(e) {
-                    console.log(e.message)
+                    console.log(e)
                     errors = push_to_errors(errors, field.source, { type: "token", data: { message: "Incorrect token!", data: field.value }})
                 }
                 break

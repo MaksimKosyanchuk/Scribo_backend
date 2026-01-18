@@ -26,8 +26,8 @@ router.post('/login', async (req, res) => {
     }
     catch(e) {
         console.log(e)
-
         const result_data = {
+            
             status: false,
             message: "Internal server error", 
             data: null
