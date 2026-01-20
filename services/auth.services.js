@@ -4,6 +4,8 @@ const { create_new_user } = require('../db/auth')
 const { upload_image } = require("./aws.services")
 const { field_validation } = require("./utils/validation")
 const { set_jwt_token } = require("./utils/jwt")
+const { send_verification_code, verify_code, is_verification_code_exists, invalidate_verification_code } = require("./email/email.services")
+const email = require("../models/email")
 
 async function compare_passwords(password, from_db) {    
     return await bcrypt.compare(password, from_db)
@@ -169,8 +171,96 @@ async function set_password_hash(password) {
     return bcrypt.hashSync(password, process.env.PSSWORD_SALT)
 }
 
+async function request_verification_code(req) {
+    const validation = await field_validation([ {
+        type: "email",
+        source: "body",
+        value: req.body.email
+    }])
+
+    if(!validation.status) {
+        return {
+            status: false,
+            message: "Some errors in your fields!",
+            data: null,
+            errors: validation.errors,
+            code: 400
+        }
+    }
+
+    const result = await send_verification_code(req.body.email)
+
+    if(result.status) {
+        return {
+            status: true,
+            message: result.message,
+            data: null,
+            code: 200
+        }
+    }
+}
+
+async function verify_email_code(req) {
+    const validation = await field_validation([
+        {
+            type: "email",
+            source: "body",
+            value: req.body.email
+        },
+        {
+            type: "email_code",
+            source: "body",
+            value: req.body.code
+        }
+    ])
+
+    if(!validation.status) {
+        return {
+            status: false,
+            message: "Some errors in your fields!",
+            data: null,
+            errors: validation.errors,
+            code: 400
+        }
+    }
+
+    const code_exists = await is_verification_code_exists(req.body.email)
+
+    if(!code_exists) {
+        return {
+            status: false,
+            message: "Verification code has expired or does not exist!",
+            data: null,
+            code: 404
+        }
+    }
+
+    const result = await verify_code(req.body.email, req.body.code)
+
+    if(result.status) {
+        await invalidate_verification_code(req.body.email)
+        return {
+            status: true,
+            message: result.message,
+            data: result.data,
+            code: 200
+        }
+    }
+
+    return {
+        ...result,
+        data: {
+            email: req.body.email,
+            code: req.body.code
+        },
+        code: 401
+    }
+}
+
 module.exports = {
     login,
     register,
     compare_passwords,
+    request_verification_code,
+    verify_email_code
 }
