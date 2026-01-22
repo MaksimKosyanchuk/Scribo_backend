@@ -1,5 +1,5 @@
 const { Router } = require('express')
-const { login, register } = require('../services/auth.services')
+const { login, register, request_verification_code, verify_email_code, google_token_verify } = require('../services/auth.services')
 const multer = require('multer');
 const router = Router();
 
@@ -61,5 +61,66 @@ router.post('/register', (req, res) => {
     }
     })
 })
+
+router.post('/google/verification', async (req, res) => {
+    try {
+        const result = await google_token_verify(req)
+
+        res.status(result.code)
+
+        delete result.code
+        
+        res.json(result)
+    } catch (e) {
+        console.log(e)
+
+        res.status(500).json({
+            status: false,
+            message: 'Internal server error!',
+            data: null
+        })
+    }
+})
+
+router.post('/email/verification', async (req, res) => {
+    try {
+        const result = await request_verification_code(req)
+
+        res.status(result.code)
+
+        delete result.code
+        
+        res.json(result)
+    } catch (e) {
+        console.log(e)
+
+        res.status(500).json({
+            status: false,
+            message: 'Internal server error!',
+            data: null
+        })
+    }
+})
+
+router.post('/email/verification/confirm', async (req, res) => {
+    try {
+        const result = await verify_email_code(req)
+
+        res.status(result.code)
+
+        delete result.code
+        
+        res.json(result)
+    } catch (e) {
+        console.log(e)
+
+        res.status(500).json({
+            status: false,
+            message: 'Internal server error!',
+            data: null
+        })
+    }
+})
+
 
 module.exports = router
