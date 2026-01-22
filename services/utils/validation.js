@@ -138,7 +138,31 @@ async function field_validation(fields) {
                     errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Field is_verified should be boolean!", data: field.value }})
                 }
                 break
-        }
+            case "email":
+                if(!field.value) {
+                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Missing email!", data: "" }})
+                    break
+                }
+                if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value)) {
+                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Incorrect email!", data: field.value }})
+                }
+                break
+            case "email_code":
+                if(!field.value) {
+                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Missing email code!", data: "" }})
+                    break
+                }
+                if(!/^[0-9]{6}$/.test(field.value)) {
+                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Incorrect email code!", data: field.value }})
+                }
+                break
+            case "google_token":
+                if(!field.value || field.value.trim().length === 0){
+                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Missing token!", data: field.value }})
+                    break
+                }
+            
+            }
     }
     return {
         status: Object.keys(errors).length === 0,
