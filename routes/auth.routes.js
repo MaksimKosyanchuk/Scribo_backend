@@ -1,5 +1,5 @@
 const { Router } = require('express')
-const { login, register, request_verification_code, verify_email_code } = require('../services/auth.services')
+const { login, register, request_verification_code, verify_email_code, google_token_verify } = require('../services/auth.services')
 const multer = require('multer');
 const router = Router();
 
@@ -64,7 +64,7 @@ router.post('/register', (req, res) => {
 
 router.post('/google/verification', async (req, res) => {
     try {
-        const result = await register(req)
+        const result = await google_token_verify(req)
 
         res.status(result.code)
 
