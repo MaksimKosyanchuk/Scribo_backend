@@ -34,7 +34,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions))
 app.use(express.json({ extended: true }))
-
 app.use('/api/posts', require('./routes/posts.routes'))
 app.use('/api/users', require('./routes/users.routes'))
 app.use('/api/auth', require('./routes/auth.routes'))
