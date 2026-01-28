@@ -138,6 +138,11 @@ async function field_validation(fields) {
                     errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Field is_verified should be boolean!", data: field.value }})
                 }
                 break
+            case "is_email_public":
+                if(!isBooleanValue(field.value)) {
+                    errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Field is_email_public should be boolean!", data: field.value }})
+                }
+                break
             case "email":
                 if(!field.value) {
                     errors = push_to_errors(errors, field.source, { type: field.type, data: { message: "Missing email!", data: "" }})
