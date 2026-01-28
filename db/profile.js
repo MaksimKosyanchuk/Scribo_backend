@@ -132,9 +132,26 @@ async function add_notification_to_user_by_id(user_id, notification) {
     }
 }
 
+async function update_profile_by_id(user_id, update_fields) {
+    const user = await get_user_by_query({ "_id": user_id })
+    if(!user.status) return user
+
+    const result = await User.findOneAndUpdate( 
+        { _id: user_id },
+        { $set: update_fields },
+        { new: true }
+    );  
+    return {
+        status: true,
+        message: "Success updated profile",
+        data: result
+    }
+}
+
 module.exports = {
     add_post_to_saved,
     remove_post_from_saved,
     read_notifications_by_user_id,
-    add_notification_to_user_by_id
+    add_notification_to_user_by_id,
+    update_profile_by_id
 }

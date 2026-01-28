@@ -1,6 +1,11 @@
 const { Router } = require('express')
-const { get_profile, save_post, unsave_post, read_notifications } = require('../services/profile.services')
+const { get_profile, update_profile, save_post, unsave_post, read_notifications } = require('../services/profile.services')
+const multer = require('multer');
 const router = Router();
+
+const upload = multer({
+    limits: { fieldSize: 5 * 1024 * 1024 }
+})
 
 router.get('/', async (req, res) => {
     try {
@@ -21,6 +26,32 @@ router.get('/', async (req, res) => {
             data: null
         })
     }
+})
+
+router.patch('/', (req, res) => {
+    upload.single('avatar')(req, res, async (err) => {
+        if (err instanceof multer.MulterError) {
+            req.file = null
+        }
+        try {
+            const result = await update_profile(req)
+
+            res.status(result.code)
+
+            delete result.code
+
+            res.json(result)
+        }
+        catch(e) {
+            console.log(e)
+
+            res.status(500).json({
+                status: false,
+                message: "Internal server error",
+                data: null
+            })
+        }
+    })
 })
 
 router.post('/save-post/:id', async (req, res) => {
